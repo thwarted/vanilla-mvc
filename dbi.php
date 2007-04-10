@@ -314,8 +314,7 @@ class DBIdbh {
 }
 
 class DBI {
-    #static
-    public function connect($type, $a = NULL) {
+    public static function connect($type, $a = NULL) {
         if (!isset($a) && strpos($type, 'dbi') === 0) {
             # dbi:DriverName:database=database_name;host=hostname;port=port
             if (preg_match('/^dbi:(\w+):(.+)$/', $type, $m)) {
