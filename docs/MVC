@@ -1,0 +1,59 @@
+
+From http://en.wikipedia.org/wiki/Model-view-controller
+
+Model
+    The domain-specific representation of the information on which the 
+    application operates. It is a common misconception that the model 
+    is another name for the domain layer. Domain logic adds meaning to 
+    raw data (e.g., calculating if today is the user's birthday, or the 
+    totals, taxes and shipping charges for shopping cart items).
+    Many applications use a persistent storage mechanism (such as a 
+    database) to store data. MVC does not specifically mention the data 
+    access layer because it is understood to be underneath or encapsulated 
+    by the Model.
+View
+    Renders the model into a form suitable for interaction, typically a user 
+    interface element.
+Controller
+    Processes and responds to events, typically user actions, may invoke 
+    changes on the model. 
+
+
+
+
+From http://api.rubyonrails.org/files/README.html
+
+    The view (also called the presentation) [is comprised of] "dumb" 
+    templates that are primarily responsible for inserting pre-build data in
+    between HTML tags.  The model contains the "smart" domain objects (such
+    as Account, Product, Person, Post) that holds all the business logic and
+    knows how to persist themselves to a database.  The controller handles
+    the incoming requests (such as Save New Account, Update Product, Show 
+    Post) by manipulating the model and directing data to the view.
+
+
+
+
+From http://www.forgetful.info/articles/view/cakephp/
+
+   1. Model: The model represents the very essence of the information and 
+      content of a web application. Imagine this as an object able to 
+      gather the information and content of your webpages from a particular 
+      resource, such as a database. The model is the only entity able to 
+      access resources.
+
+   2. View: The view is an attempt to separate the most unstable part of an 
+      application: the user front-end. A view is only responsible for 
+      presenting the information that the Model gathered. A view does nothing
+      but format the output, and can be compared to a template or report. 
+      In all MVC frameworks for web applications, only view files contain 
+      (X)HTML code, and mostly only that.  They can therefore be changed at 
+      any time without having to touch a single line of the business logic 
+      of your application.
+
+   3. Controller: The controller is the 'brain' of the application. Consider
+      it to be the only part of your program that can 'think' and manage the 
+      other parts.  Controller files are the only ones able to order the 
+      Model to gather information and then pass the information obtained to 
+      the view for display.
+

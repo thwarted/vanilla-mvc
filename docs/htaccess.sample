@@ -1,0 +1,6 @@
+
+RewriteEngine On
+RewriteBase /
+RewriteRule ^.*$ vanilla/dispatch.php
+
+# the media/ directory needs an .htaccess that does RewriteEngine Off

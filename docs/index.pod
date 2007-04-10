@@ -1,0 +1,579 @@
+=head1 VanillaMVC - a simple MVC for PHP
+
+
+
+=head1 Introduction
+
+VanillaMVC is intended to be a simple and lightweight MVC framework for PHP.
+you to get things done without having to install and configure a huge framework
+or change your programming style to fit into the framework.  VanillaMVC has a
+suggested style, but tries not to force it on the programmer.
+
+VanillaMVC uses Smarty for templating views.  Information on Smarty is available at 
+L<http://smarty.php.net/>.
+
+It also comes with a simple database abstraction layer that works similarly to Perl's
+DBI (currently with support for MySQL and SQLite) and an HTML form builder that is
+designed to be integrated with Smarty.
+
+=head1 Overview
+
+=head2 Installation and Upgrading
+
+Installation and upgrading is designed to be as painless as possible.  To start a new
+project,
+
+=over
+
+=item 1 create a new directory to store your project
+
+=item 2 copy the C<vanilla> distribution directory into your project directory
+
+=item 3 run the script C<vanilla/configure.sh> which to create all the base directories and htaccess file defaults.  Specify the web server path that the directory will be accessible as as the first and only argument.  This will be used to properly setup a default C<htaccess> file you.
+
+=back
+
+You may also need to modify your Apache configuration.  If you elect not to use C<htaccess>
+files or rewrite rules, you can use the Apache C<Alias> directive instead.
+
+It is also recommended that the Apache directive C<AllowEncodedSlashes> be set to C<on>.  By
+default, Apache rejects requests that contain encoded slashes (%2F) with a 404 error.  Disabling
+that may avoid some problems with the way links are generated, depending on how your application
+is written.
+
+To upgrade to a new version of VanillaMVC, replace the current C<vanilla> directory in your 
+project with the updated one.
+
+
+=head2 Directories and Files
+
+=over
+
+=item C<vanilla/> directory
+
+Stores the vanillaMVC distribution.
+
+=item C<vanilla/dispatch.php>
+
+Using rewrite rules (or other Apache configurations, like Alias) directs all requests in this directory to this script.  This is the main script, that determines which controller to invoke
+
+=item C<setup/>
+
+Contains general setup files for your application.  Files that end with C<.setup.php> will be invoked, in sorted order, at the start of every request.  Database connections and session setup should happen here.  There are also three other files, C<global_conf.php>, C<template_conf.php> and C<smarty_custom.php> 
+
+=item C<models/>
+
+Classes that define models are stored here.
+
+=item C<views/>
+
+View templates are stored here.  It is recommended that each controller have its own directory within the views/ folder to make template management easier.  Controllers specify a view filename relative to the views/ directory.
+
+=item C<controllers/>
+
+Classes that define controllers are stored in the C<controllers/> directory.  All the controller classes should be based on the C<base_controller> class (defined in C<vanilla/base_controller.php> and need to be named C<controller_>I<name> in a file named I<name>C<.php>.
+
+=back
+
+=head2 Setup
+
+=head2 The Demo Application
+
+=head1 Building Your Application
+
+=head2 Creating a Model
+
+There are no hard and fast rules that determine how to implement a Model object.  What follows is merely a suggested method.  Whatever you decide to do, it is wise to 
+
+VanillaMVC may implement, in the future, automatically generating a model from a database schema.
+
+=head2 Creating a View
+
+=head2 Creating a Controller
+
+All controllers should extend the C<base_controller> object.  The public methods on a controller object define the controller's interface, accessible via URL mappings by the C<vanilla/dispatch.php> file.
+
+The dispatch code parses the requested URL and figured out which controller to instantiate and which method to call.  Any remaining data in the URL is passed to the called method as arguments.
+
+In VanillaMVC, the 
+
+The URL
+
+    /
+
+uses the C<The Default Controller>.
+
+=head3 The Default Controller
+
+When your app is first loaded, there is no specific controller to use to process the request.  You can default a default controller and method to be called when one is not specified in the URL.
+
+The file C<setup/global_conf.php> should contain an assignment to the C<default_controller> element of the C<$_SERVER> array.
+
+    $_SERVER['default_controller'] = array('example', 'list');
+
+When it is necessary to use the default controller, this will tell vanillaMVC to instantiate the example controller and call the C<list> method on it.
+
+=head3 Displaying Output: HTML
+
+=head3 Displaying Output: JSON
+
+=head2 Simple Debugging
+
+=head2 HTTP Redirections
+
+=head1 Smarty Extensions
+
+=over
+
+=item C<{break}> and C<{continue}>
+
+Like in PHP and C, C<{break}> can be used in a loop (foreach or section) to exit the loop early, whereas C<{continue}> can be used to start the next iteration of the loop.
+
+=item modifier C<|@printr>
+
+When this modifier is applied to a value, it will be displayed as through the PHP function C<var_export>.  Useful for debugging purposes.  To display an entire array, be sure to use the C<|@printr> syntax, to make sure the whole array is passed, not just each element in turn.
+The C<@> must be specified so the array is processed as a whole.
+
+=item modifier C<|@join>
+
+Performs a C<join> on the elements of an array.  Takes a required parameter, the character or string to join with.
+The C<@> must be specified so the array is processed as a whole.
+
+    {$array|@join:","}
+
+=item modifier C<|@reverse>
+
+Reverses an array.  
+The C<@> must be specified so the array is processed as a whole.
+
+=item modifier C<|@slice>
+
+Works like the PHP function C<slice>
+
+    {assign var=shorter value=$array|slice:4:1}
+
+The C<@> must be specified so the array is processed as a whole.
+
+=item modifier C<|attr>
+
+The C<attr> modifier alters the HTML tag passed through to add or change attribute values.  This is most often used with the output of form field objects to add class attributes.
+
+    {$htmltag|attr:"class":"active"}
+
+They can be chained to add multiple attributes:
+
+    {$htmltag|attr:"class":"active"|attr:"size":"50"}
+
+=item modifier C<|d>
+
+If VanillaMVC's debug functionality is enabled, this modifer will send the given value to the messages area.
+
+=back
+
+=head1 Database Abstraction
+
+The file C<vanilla/dbi.php> implements a Perl DBI style database abstraction for PHP.  Currently only MySQL and SQLite (both 2 and 3) are supported.  It is not a 100% complete and compatible implementation of Perl's DBI, nor does it use all the features of the underlying database library.
+
+=head2 Connecting to a database
+
+The C<DBI::connect> is used to open a new connection to a database.  The first argument is the name of the database driver, the second argument is an array of driver specific options.
+
+For MySQL, the connect call looks like
+
+    $dbh = DBI::connect('mysql', array('host'=>DBHOST,
+                                       'user'=>DBUSER,
+                                   'password'=>DBPASS,
+                                   'database'=>DATABASE,
+                                 'persistent'=>true));
+
+For SQLite2 and SQLite3, the only value in the second argument is the path to the database:
+
+    $dbh = DBI::connect('sqlite3', array('dbname'=>
+                                './path/to/database.sqlite3'));
+
+For VanillaMVC, this call should appear in a file in the C<setup/> directory, and the C<$dbh> variable should be a global.
+
+=head2 Performing Queries
+
+This database abstraction supports the concept of "prepared queries" (however, if the driver actually uses the underlying library's implementation of prepared queries is driver dependent).  Similar to Perl's DBI, the basic structure is:
+
+    $sth = $dbh->prepare("select * from table where field = ?");
+    $sth->execute($valueOfField);
+    while($r = $sth->fetchrow_array()) {
+        ...
+    }
+
+The question marks in the query will be replaced with (database driver specific) quoted values as given in the arguments to the C<execute> call.  The number of arguments to C<execute> should be equal to the number of question marks in the query.  Question marks can only appear where literal values can be in the query, column names or other identifiers, which may have different quoting rules, can not be specified dynamically this way.  You do not need to quote the values passed to the C<execute> or enclose the question marks in quotes.
+
+In addition to the simple positional placeholders, named placeholders are also supported.  A string-indexed array (hash) can be passed, naming each argument.
+
+    $q = "select * from table where x = ?:xval and y = ?:yval";
+    $sth = $dbh->prepare($q);
+    $sth->execute(array('xval'=>1, 'yval'=>2));
+
+When using named placeholders, the name can be suffixed with C<:join>, which is a convience function that will create a quoted value string for the array that is passed as that name.  This allows easy use of the SQL C<in> operator.
+
+    $q = "select * from table where x in (?:xlist:join) and y = ?:yval";
+    $sth = $dbh->prepare($q);
+    $sth->execute(array('yval'=>2, 'xlist'=>array("one", "two", 3)));
+
+This will ultimately perform the query
+
+    select * from table where x in ('one', 'two', 3) and y = 2
+
+making the C<in> operation easier to generate without having to know the number of elements in the matching list ahead of time.  Note that
+
+    ?:xlist:join
+
+expands to (in this example)
+
+    'one', 'two', 3
+
+so the query must enclose the named placeholder in C<()> to generate the correct SQL syntax.
+
+=head2 Database functions
+
+If there is an error, then an exception of class C<DBIException> will be thrown.
+
+=head3 DBI
+
+=over
+
+=item ::connect
+
+Creates and returns a new database handle based on the passed arguments, which are driver specific.
+
+=back
+
+=head3 Database handle
+
+=over
+
+=item ->quote_label(x)
+
+Quotes the string x according to label quoting rules for the database driver.
+
+=item ->quote(x)
+
+Quotes the value x according to value quoting rules for the database driver.  If x is NULL or not set (C<isset> returns false), then the returned value is the string C<"NULL">.  If x is an array, then each element of x is quoted.
+
+=item ->prepare(s)
+
+Prepares the statement in string s for execution.  Returns a statement handle.
+
+=item ->stats()
+
+Returns some statistics about queries, as a string. (TODO: these stats are global, should be database handle specific)
+
+=back
+
+=head3 Statement handle
+
+When you are done with a statement handle, you should call C<finish> on it, so it has a chance to cleanup any local storage and release any server resources that were in use for the statement.  If the statement handle object is destroyed (via going out of scope), then destructor calls C<finish>, so calling C<finish> is not strictly necessary.
+
+=over
+
+=item execute(...)
+
+Executes the statement using the passed values for the placeholders.  If a single array is passed, that array's values will be used for the placeholders.  Passing a single array is the only way to pass an array with string indexes for use with named placeholders.
+
+=item execute_array(a,b,c,...)
+
+Executes the statement once for each passed array.  Each argument must be an array.  If x is an array, then execute(x) and execute_array(x) are equivalent.
+
+=item num_rows() 
+
+Returns the driver specific number of rows for the last statement.  The meaning of this is driver and database specific.
+
+=item affected_rows()
+
+Returns the driver specific count of affected rows for the last statement.  This is usually only valid after update or delete statements, and is specific to the database being used.
+
+=item insert_id()
+
+Returns the auto-increment value used in the last insert statement to a table that had an auto-increment column.
+
+=item finish()
+
+Destroys the statement's storage, tells the database server to release any resources related to this statement.
+
+=item fetchrow_array()
+
+=item fetchrow_arrayref()
+
+For select statements, returns a result set as an array, integer indexed.
+
+=item fetchrow_hash()
+
+=item fetchrow_hashref()
+
+For select statements, returns a result set as an array, indexed by the names of the columns selected.
+
+=item fetchrow_object(baseclass)
+
+For select statements, will return an object with class variables named and populated with the columns selected.  If C<baseclass> is a string and names a defined class, a new object of that class will be created.  If C<baseclass> is an object, no new object will be created, but that object will have it's class variables filled in.  C<baseclass> is optional, and if not specified, an anonymous classless PHP object will be created to hold the values.
+
+=item _stmt()
+
+Returns the statement executed, as a string (this is a debugging aid).
+
+=item execution_time() 
+
+Returns the wall-clock time passed while the statement was executing, in seconds.
+
+=back
+
+=head1 HTML Form Abstraction
+
+The file C<vanilla/form.php> implements an object oriented HTML form abstraction class that allows controllers, models, and views to create and display forms easily.
+
+The form object knows how to consume input from the client upon submission, and each field can be validated independently for errors before processing.  The form object itself implements the C<Countable>, C<ArrayAccess>, and C<Iterator> interfaces of PHP's SPL, making it easy to interact with the form and it's elements using array syntax (either PHP array syntax or smarty PHP syntax).
+
+=head2 Form creation
+
+To create a form, the PHP new operator is used
+
+    $form = new form($name, $datasource)
+
+The first argument designates the name of the form.  This name should be unique for all forms presented on the same page because it is used as an HTML id value and to generate form element id and name values.
+
+After creation, the form should be told its submission method (get or post) and its action via the C<method> and C<action> method calls respectively:
+
+    $form->method('post');
+    $form->action(url);
+
+VanillaMVC provides a utility function called C<mk_invoke_link> that will return a URL usable for creating links to other controllers in a portable way.  C<mk_invoke_link> can be used to create the URL being passed to the C<action> method.
+
+=head2 Populating a form with fields
+
+An instance of the form object can be manipulated like an array.  It can be iterated over with C<foreach> and individual elements can be set and unset.  Adding fields to the form takes the syntax of array-appending:
+
+    $form[] = new form_input_text('username');
+    $form[] = new form_input_submit('submit', 'do it');
+
+This adds two fields to the form, one text field named C<username> and a submit button that will show the text C<do it> on it.  See L<Form Field Objects> for a list of all the names of the objects that implement HTML form fields.  A form instance will only accept values that are descendants of the C<formfield> class.  Attempting to set an element of the form array to a value that is not a descendant of the C<formfield> object will be ignored.
+
+After being added to the form, the individual form elements can be accessed using array-index notation using the name of the field.
+
+    $form['username']->label('Enter your username');
+
+This sets the label for the field, which can be used by the view to display.  There are three methods that setup additional information about the field, and each one returns the form field object itself, so they can be chained together to make code easier to read and modify.  The following three statements:
+
+    $form['username']->label(...)
+    $form['username']->required()
+    $form['username']->verify_using(...)
+
+Can be written instead as
+
+    $form['username']->label(...)
+                     ->required()
+                     ->verify_using(...)
+
+The entire form can then be assigned to the view.  Assuming that C<$view> is an instance of the smarty view for a controller,
+
+    $view->assign('fm', $form);
+
+will make the form accessible in the view as the C<$fm> variable.  The view can then call the C<html> and C<label_html> methods on the form's elements.  See the L<Outputing HTML> section for details.
+
+=head2 Form Field Objects
+
+All form field objects define the following methods:
+
+=over
+
+=item [ctor]($name, $value, $attr=array())
+
+C<$name> is the the field name.  This should be unique for all fields within the same form.
+
+=item ->type()
+
+Returns a string with the type of form field.
+
+=item ->name()
+
+Returns the name of the form field.
+
+=item ->origin_form()
+
+Return the form object that this field is a member of.
+
+=item ->attributes($newattr=NULL)
+
+Sets the attributes to the value passed, returns the current attribute list.
+
+=item ->value($submitted_value=NULL)
+
+Returns the current value of the form field, if C<$submitted_value> is passed, sets the submitted value of the field to the passed value.
+
+=item ->default_value($newdef=NULL)
+
+Returns the default value of the form field, sets the default value if C<$newdef> is set.
+
+=item ->required($r=true)
+
+Tells the field it is required.  Returns the form field object (to allow method call chaining).
+
+=item ->verify_using($func, $callalways)
+
+Use C<$func> to verify the field is the proper format/range of values upon submission.  C<$func> should be a PHP call-back value, either a string designating a function name, or a two element array listing an object or class and a method name.  If C<$callalways> is true, C<$func> will be called even if the field was not set when the form was submitted or it's required but was not specified.
+
+Returns the form field object (to allow method call chaining).
+
+See L<Validating input> for information on how the verification function needs to work.
+
+=item ->message($new=NULL)
+
+If C<$new> is specified, set the error message for this form field.  Returns the error message for this field.
+
+=item ->html_open()
+
+Returns the opening HTML for this form field.
+
+=item ->html_close()
+
+Returns the closing HTML for this form field.
+
+=item ->html()
+
+Returns the HTML for this form field.  By default, this is the concatenation of the results of calling C<html_open> and C<html_close>.  The view will most likely call this, but some form fields, like buttons and text areas, may require view-defined content that may necessitate calling the opening and closing functions directly.
+
+=item ->label(s)
+
+Sets the label for this form field to the string s.  A label is usble by the view to name or label the field for the user.
+
+Returns the form field object (to allow method call chaining).
+
+=item ->label_str()
+
+Returns the label string set for this form field.
+
+=item ->label_html()
+
+Usable by views to generate the HTML for a label element for this form field.
+
+=item ->notes(s)
+
+Sets the notes for this field to the string s.  This can be used by the view to provide input hints to the user.
+
+Returns the form field object (to allow method call chaining).
+
+=item ->notes_html()
+
+Returns HTML showing the notes field.  The view should call this function.
+
+=back
+
+There is an object for each type of HTML form field:
+
+=over
+
+=item form_input_text
+
+=item form_input_hidden
+
+=item form_input_password
+
+=item form_input_checkbox
+
+=item form_textarea
+
+=item form_input_image
+
+=item form_button
+
+=item form_input_submit
+
+=item form_input_reset
+
+=item form_input_radio_series
+
+=item form_input_select_series
+
+=back
+
+=head2 Validating input
+
+Form fields can have verification callback functions defined that will be called when the form is submitted and goes through a verification stage.
+
+Each field can have its own verification function, or common libraries of verification functions can be defined.  The formfield object itself can automatically take care of verifying a field's "requiredness", although you can elect to have the verification callback function called even if the field is required and wasn't set in the submitted data.
+
+The verification function can return the submitted data in a massaged format.  This can be used to normalize input data before processing or to suggest proper input formats to the user.
+
+A verification callback function takes three arguments and returns an array with three elements.  The null verification function, that accepts all inputs, is the following:
+
+    function verify_all($value, $fieldname, $originform) {
+        $valid = true;
+        $errormsg = NULL;
+        return array($valid, $value, $errormsg);
+    }
+
+The first argument is the value being verified.  The second argument is the name of the field being verified and the third argument is the form object that contains this field.  The second and third arguments can be used to do complex verification routines where the exact procedure is based on the field name, allowing one verification function to handle minor variations in different fields' requirements, or to base the verification of one field off the value submitted in another field.  The C<$originform> object's other fields can be accessed using array indexing notation.
+
+The return value is a three element array.  The first element is interpreted as a boolean, indicating if this value passed verification or not.  If not, then the form is considered to be in an error state and the controller can avoid processing the form unless all fields pass verification.
+
+The second element is the value that should be assigned to this field.  In most cases, the verification function should just return the received value unchanged.
+
+The third argument is an error message that should be displayed to the user.  It only makes sense to return something meaningful for the error message when the field fails verification, because the controller and view may not display any error messages if the form is entirely valid.
+
+Here is a sample verification callback that is looking for a 10-digit phone number, which it then normalizes.  It allows any punctuation to be used, but, for the sake of this example, does not allow letters to be input.
+
+    $form[] = new form_input_text('phonenumber');
+    $form['phonenumber']->required(true)
+                        ->verify_using('verify_US_phonenumber', $callalways=false);
+
+    if ($form->submitted()) {
+        if ($form->verify()) {
+            # process the form
+        }
+    }
+
+    function verify_US_phonenumber($value, $fieldname, $originform) {
+        if (preg_match('/[a-z]/i', $value)) {
+            return array(false, $value, "US phone numbers can not contain letters");
+        }
+        $v = preg_replace('/[^0-9]/', '', $value);
+        if (preg_match('/^1/', $v)) {
+            return array(false, $value, "US phone numbers can not start with 1");
+        }
+        if (strlen($v) == 10 && preg_match('^(\d{3})(\d{3})(\d{4})$/', $v, $m)) {
+            list($all, $areacode, $exchange, $num) = $m;
+            # normalize the value
+            return array(true, "($areacode)$exchange-$num", NULL);
+        }
+        return array(false, $value, "US phone numbers are 10 digits long");
+    }
+
+
+=head2 Outputing HTML
+
+Displaying an entire form in a view would take the following form, to continue the above example:
+
+    {$fm->start()}
+    {$fm.username->label_html()}: {$fm.username->html()}
+    {$fm.submit->html()}
+    {$fm->end()}
+
+Since the form object implements the Iterator interface, the smarty {foreach} function can be used.  This example formats all non-submit fields in a three column table, the first column showing the label, the second column showing the HTML form element, and the third column showing any error messages.
+
+    {$fm->start()}
+
+    <table>
+    {foreach from=$fm item=$field}
+        {if $field->type() != 'submit'}
+            <tr>
+                <td>{$field->label_html()}</td>
+                <td>{$field->html()}</td>
+                <td>{$field->message()}</td>
+            </tr>
+        {/if}
+    {/foreach}
+    </table>
+
+    {$fm.submit->html()}
+    {$fm->end()}
+
+In this example, the controller can add more fields and they will automatically be displayed without having to make major modifications to the view.
+
+Note that the C<message> function is called.  If that form field failed validation, then an error message can be made available to the view to tell the user how the input was invalid.
+
+
