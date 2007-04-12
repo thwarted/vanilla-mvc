@@ -18,13 +18,13 @@ function mk_invoke_link() {
     $controller_class = "controller_$controller";
 
     if (!file_exists($controller_file)) {
-        throw new HTTPNotFound("controller $controller file not found");
+        throw new HTTPNotFound("controller $controller: file not found");
     }
 
     require_once($controller_file);
 
     if (!class_exists($controller_class)) {
-        throw new HTTPNotFound("controller $controller code not found");
+        throw new HTTPNotFound("controller $controller: code not found");
     }
 
     $x = preg_replace('@/+$@', '', $_SERVER['uribase']);
@@ -65,13 +65,13 @@ function invoke_controller($request) {
     $controller_class = "controller_$controller";
 
     if (!file_exists($controller_file)) {
-        throw new HTTPNotFound("controller $controller file not found");
+        throw new HTTPNotFound("controller $controller: file not found");
     }
 
     require_once($controller_file);
 
     if (!class_exists($controller_class)) {
-        throw new HTTPNotFound("controller $controller code not found");
+        throw new HTTPNotFound("controller $controller: code not found");
     }
 
     $controller = new $controller_class();

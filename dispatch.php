@@ -21,9 +21,6 @@ $_SERVER['uribase'] .= '/';
 $_SERVER['mediabase'] = $_SERVER['uribase'].'media/';
 $_SERVER['filebase'] = preg_replace('@/vanilla/dispatch.php$@', '', $_SERVER['SCRIPT_FILENAME']);
 
-#ksort($_SERVER);
-#d($_SERVER);
-
 try {
     require_once "vanilla/setup.php";
 } catch (Exception $e) {
