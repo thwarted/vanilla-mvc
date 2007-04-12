@@ -91,7 +91,7 @@ EOF
 fi
 
 if [ ! -e setup/smarty_custom.php ]; then
-cat > setup/template_conf.php <<"EOF"
+cat > setup/smarty_custom.php <<"EOF"
 <?php
 
 # custom smarty extensions can be defined here
