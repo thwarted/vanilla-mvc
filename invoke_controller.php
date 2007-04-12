@@ -48,13 +48,18 @@ function mk_invoke_link() {
 
 function invoke_controller($request) {
 
+    $x = false;
     if ($request) {
         $x = explode('/', $request);
-    } else {
-        if (!isset($_SERVER['default_controller'])) {
-            throw new Exception("default controller not specified");
-        }
+    }
+
+    if (!isset($_SERVER['default_controller'])) {
+        throw new Exception("default controller not specified");
+    }
+    if (!$x) {
         $x = $_SERVER['default_controller'];
+    } elseif (count($x) < 2) {
+        throw new HTTPException('Moved', 302, mk_invoke_link($_SERVER['default_controller'][0], $_SERVER['default_controller'][1]));
     }
 
     $controller = array_shift($x);
