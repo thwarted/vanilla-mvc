@@ -3,7 +3,7 @@
 chdir('..');
 
 foreach (array('setup', 'models', 'views', 'controllers') as $__x) {
-    if (!is_dir($x)) {
+    if (!is_dir($__x)) {
         die("vanillaMVC is not properly setup, $__x directory is missing");
     }
 }
