@@ -103,7 +103,7 @@ class lib {
 
         global $dbh;
 
-        $box .= lib::trow('database stats', $dbh->stats());
+        #$box .= lib::trow('database stats', $dbh->stats());
 
         global $__RECMSG;
         if ($__RECMSG) {
