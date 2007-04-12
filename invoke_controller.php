@@ -74,8 +74,6 @@ function invoke_controller($request) {
         throw new HTTPNotFound("controller $controller: code not found");
     }
 
-    $controller = new $controller_class();
-
     if (count($x)) {
         $m = array_shift($x);
         if (preg_match('/\W/', $m)) {
@@ -83,7 +81,7 @@ function invoke_controller($request) {
         }
         $method = false;
         foreach (array($m, "_$m") as $trym) {
-            if (method_exists($controller, $trym)) {
+            if (method_exists($controller_class, $trym)) {
                 $method = $trym;
                 break;
             }
@@ -99,6 +97,7 @@ function invoke_controller($request) {
                 $r[] = urldecode($v);
             }
         }
+        $controller = new $controller_class($m);
         call_user_func_array(array($controller, $method), $r);
     }
 
