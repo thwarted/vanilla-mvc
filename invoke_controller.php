@@ -7,28 +7,37 @@ function mk_invoke_link() {
     }
 
     $controller = array_shift($a);
-    $method = array_shift($a);
     if (preg_match('/\W/', $controller)) {
         throw new Exception('illegal characters in controller name');
-    }
-    if (preg_match('/\W/', $method)) {
-        throw new Exception('illegal characters in method name');
     }
     $controller_file = "controllers/$controller.php";
     $controller_class = "controller_$controller";
 
     if (!file_exists($controller_file)) {
-        throw new HTTPNotFound("controller $controller: file not found");
+        error_log("creating link to non-existent controller file \"$controller\"");
+        #throw new HTTPNotFound("controller $controller: file not found");
+    } else {
+        require_once($controller_file);
     }
 
-    require_once($controller_file);
 
     if (!class_exists($controller_class)) {
-        throw new HTTPNotFound("controller $controller: code not found");
+        error_log("creating link to non-existent controller class \"$controller\"");
+        #throw new HTTPNotFound("controller $controller: code not found");
     }
 
-    $x = preg_replace('@/+$@', '', $_SERVER['uribase']);
-    $b = join('/', array($x, $controller, $method));
+    $path = preg_replace('@/+$@', '', $_SERVER['uribase']);
+    $path = array($path, $controller);
+
+    if ($a) {
+        $method = array_shift($a);
+        if ($method && preg_match('/\W/', $method)) {
+            throw new Exception('illegal characters in method name');
+        }
+        $path[] = $method;
+    }
+
+    $b = join('/', $path);
     $r = array();
     $o = array();
     foreach ($a as $k=>$v) {
@@ -59,7 +68,8 @@ function invoke_controller($request) {
     if (!$x) {
         $x = $_SERVER['default_controller'];
     } elseif (count($x) < 2) {
-        throw new HTTPException('Moved', 302, mk_invoke_link($_SERVER['default_controller'][0], $_SERVER['default_controller'][1]));
+        $x[] = '_default';
+        #throw new HTTPException('Moved', 302, mk_invoke_link($_SERVER['default_controller'][0], $_SERVER['default_controller'][1]));
     }
 
     $controller = array_shift($x);
