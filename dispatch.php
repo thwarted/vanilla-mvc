@@ -15,6 +15,7 @@ require_once "vanilla/exceptions.php";
 require_once "vanilla/form.php";
 require_once "vanilla/dbi.php";
 require_once "vanilla/base_controller.php";
+require_once "vanilla/invoke_controller.php";
 
 $_SERVER['uribase'] = preg_replace('@/vanilla/dispatch.php$@', '', $_SERVER['SCRIPT_NAME']);
 $_SERVER['uribase'] .= '/';
@@ -39,8 +40,6 @@ $request = preg_replace('@^/+@', '', preg_replace('@/+$@', '', $request));
 if ($request) {
     d($request, 'request');
 }
-
-require_once "vanilla/invoke_controller.php";
 
 try {
 
