@@ -102,6 +102,7 @@ class smarty_extensions {
     }
 
     public function modifier_d($v) {
+        # record the value as debugging info to appear in the messages box
         d($v);
     }
 
