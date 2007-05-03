@@ -29,7 +29,7 @@ project,
 
 =item 2 copy the C<vanilla> distribution directory into your project directory
 
-=item 3 run the script C<vanilla/configure.sh> which to create all the base directories and htaccess file defaults.  Specify the web server path that the directory will be accessible as as the first and only argument.  This will be used to properly setup a default C<htaccess> file you.
+=item 3 run the script C<vanilla/configure.sh> which to create all the base directories and htaccess file defaults.  Specify the web server path that the directory will be accessible as as the first and only argument.  This will be used to properly setup a default C<htaccess> file for you.
 
 =back
 
@@ -83,7 +83,7 @@ Classes that define controllers are stored in the C<controllers/> directory.  Al
 
 =head2 Creating a Model
 
-There are no hard and fast rules that determine how to implement a Model object.  What follows is merely a suggested method.  Whatever you decide to do, it is wise to 
+There are no hard and fast rules that determine how to implement a Model object.  What follows is merely a suggested method.  Whatever you decide to do, it is wise to be consistent and provide similar methods for accessing and setting data values across all your model objects.
 
 VanillaMVC may implement, in the future, automatically generating a model from a database schema.
 
@@ -101,7 +101,7 @@ The URL
 
     /
 
-uses the C<The Default Controller>.
+uses C<The Default Controller>.
 
 =head3 The Default Controller
 
