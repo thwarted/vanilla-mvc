@@ -45,7 +45,7 @@ try {
 
     $controller = invoke_controller($request);
 
-    if (count($_POST)) { d($_POST, 'POST variables'); }
+    #if (count($_POST)) { d($_POST, 'POST variables'); }
     #if (count($_SESSION)) { d($_SESSION, 'SESSION variables'); }
 
     $controller->render();
