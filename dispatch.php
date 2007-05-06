@@ -1,6 +1,6 @@
 <?php
 
-chdir('..');
+chdir(dirname(dirname($_SERVER['SCRIPT_FILENAME'])));
 
 foreach (array('setup', 'models', 'views', 'controllers') as $__x) {
     if (!is_dir($__x)) {
