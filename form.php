@@ -246,7 +246,8 @@ class form_input_hidden extends formfield {
 
 class form_input_password extends formfield {
     public function html() {
-        $r = sprintf('<input type="password" name="%s" value="%s" ', $this->mkname(), $this->value());
+        # password fields should never be populated
+        $r = sprintf('<input type="password" name="%s" value="" ', $this->mkname());
         $r .= $this->render_attributes();
         $r .= '/>';
         return $r;
