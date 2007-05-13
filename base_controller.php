@@ -38,6 +38,7 @@ class base_controller {
 */
 
     protected function json_result($val) {
+        /* should convert to use the PHP json_encode function here */
         $j = new JSON();
         $valstr = $j->encode($val);
         header("X-JSON: ".$valstr);
