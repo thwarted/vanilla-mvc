@@ -125,7 +125,7 @@ class lib {
     }
 
     private function trow($l, $v) {
-        return "<tr><td width='7%' align='right' valign='top' style='font-family: Arial,Helvetica,sans-serif; font-size: 12px;'>$l</td><td style='font-family: Arial,Helvetica,sans-serif; font-size: 12px;'>$v</td></tr>\n";
+        return "<tr><td width='7%' align='right' valign='top' style='font-family: Arial,Helvetica,sans-serif; font-size: 12px;'>$l</td><td style='font-family: Arial,Helvetica,sans-serif; font-size: 12px;' align='left'>$v</td></tr>\n";
     }
 
     public function internal_error($msg = '') {
