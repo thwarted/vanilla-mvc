@@ -37,7 +37,7 @@ EOF
 fi
 
 if [ ! -e ./.htaccess ]; then
-cat > .htaccess <<"EOF"
+cat > .htaccess <<EOF
 RewriteEngine On
 RewriteBase $DOCROOT
 RewriteRule ^.*$ vanilla/dispatch.php
