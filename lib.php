@@ -1,6 +1,6 @@
 <?php
 
-$_SERVER['show_traceback_in_browserr'] = false;
+$_SERVER['show_traceback_in_browser'] = false;
 
 require_once "vanilla/smarty/Smarty.class.php";
 require_once "vanilla/smarty_extensions.php";
@@ -170,7 +170,7 @@ class lib {
         $code = $e->getCode();
         $msg = preg_replace("/\n/", "<br/>", $msg);
         print "<h2>".get_class($e)." (code $code)</h2><tt>$msg</tt>\n";
-        if ($_SERVER['show_traceback_in_browserr']) {
+        if ($_SERVER['show_traceback_in_browser']) {
             print "<hr/>Traceback: <pre>";
         }
         error_log("cwd is ".getcwd());
@@ -178,12 +178,12 @@ class lib {
         foreach (explode("\n", $x) as $l) {
             $l = preg_replace('@(\d) '.$_SERVER['filebase'].'(.+)@', '\1 \2', $l);
             error_log($l);
-            if ($_SERVER['show_traceback_in_browserr']) {
+            if ($_SERVER['show_traceback_in_browser']) {
                 $l = preg_replace('/(\d\)|function\]: )/', '$1<strong>', $l);
                 print "$l</strong>\n";
             }
         }
-        if ($_SERVER['show_traceback_in_browserr']) {
+        if ($_SERVER['show_traceback_in_browser']) {
             print "</pre>";
         }
     }
