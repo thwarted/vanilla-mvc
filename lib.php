@@ -133,7 +133,9 @@ class lib {
         print "<html><head><title>Internal Error</title></head><body><h1>Internal Error</h1>$msg<hr/>".$_SERVER["SERVER_SIGNATURE"]."</body></html>";
     }
 
+    # should this be provided functionality
     public function enforce_cookie_requirement() {
+        $cookiename = 'phpsessid';
         /* safari apparently doesn't send cookies on a HEAD request, 
          * so avoid doing multiple useless requests looking for cookies
          * is this standards compliant?
@@ -141,7 +143,7 @@ class lib {
         if ($_SERVER['REQUEST_METHOD'] === 'HEAD') return;
 
         # RFC2616 (HTTP/1.1) says we should be generating absolute URIs here
-        if (!isset($_COOKIE['redlabellogin'])) {
+        if (!isset($_COOKIE[$cookiename])) {
             if (!isset($_GET['_crx'])) {
                 header("HTTP/1.1 302 Moved");
                 $sep = (strstr($_SERVER['REQUEST_URI'], '?')) ? '&' : '?';
