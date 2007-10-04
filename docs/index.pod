@@ -535,7 +535,7 @@ Here is a sample verification callback that is looking for a 10-digit phone numb
         if (preg_match('/^1/', $v)) {
             return array(false, $value, "US phone numbers can not start with 1");
         }
-        if (strlen($v) == 10 && preg_match('^(\d{3})(\d{3})(\d{4})$/', $v, $m)) {
+        if (strlen($v) == 10 && preg_match('/^(\d{3})(\d{3})(\d{4})$/', $v, $m)) {
             list($all, $areacode, $exchange, $num) = $m;
             # normalize the value
             return array(true, "($areacode)$exchange-$num", NULL);
