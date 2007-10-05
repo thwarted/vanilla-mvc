@@ -72,7 +72,7 @@ class formfield {
     }
 
     public function origin_form($fm) {
-        if (is_object($fm) && is_a($fm, 'form')) {
+        if (is_object($fm) && ($fm instanceof form)) {
             $this->_originform = $fm;
             $this->_id = NULL; # reset it, so it gets recalculated against the new form
         }
@@ -539,7 +539,7 @@ class form implements Countable, ArrayAccess, Iterator {
     public function end() {
         $r = '';
         foreach ($this->_fields as $fname=>$i) {
-            if (is_a($i, 'form_input_hidden')) {
+            if ($i instanceof form_input_hidden) {
                 $r .= $i->html();
             }
         }
@@ -567,7 +567,7 @@ class form implements Countable, ArrayAccess, Iterator {
 
     public function offsetSet($offset, $value) {
         # we purposely ignore the offset value
-        if (is_object($value) && is_a($value, 'formfield')) {
+        if (is_object($value) && ($value instanceof formfield)) {
             $value->origin_form($this);
             $fieldname = $value->name();
             if (is_array($this->_data)) { # if the form was actually submitted
