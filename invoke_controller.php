@@ -74,13 +74,21 @@ function invoke_controller($request) {
 
     $controller = array_shift($x);
     if (preg_match('/\W/', $controller)) {
-        throw new HTTPNotFound('illegal characters in controller name');
+        throw new HTTPNotFound('illegal characters in controller name (1)');
     }
     $controller_file = "controllers/$controller.php";
-    $controller_class = "controller_$controller";
-
-    if (!file_exists($controller_file)) {
-        throw new HTTPNotFound("controller $controller: file not found");
+    if ($controller === '_media') {
+        $controller_file = "vanilla/dynamic_media.php";
+        $controller_class = "dynamic_media_controller";
+    } else {
+        if (preg_match('/^_/', $controller)) {
+            throw new HTTPNotFound('illegal characters in controller name (2)');
+        }
+        $controller_class = "controller_$controller";
+    
+        if (!file_exists($controller_file)) {
+            throw new HTTPNotFound("controller $controller: file not found");
+        }
     }
 
     require_once($controller_file);
@@ -120,4 +128,4 @@ function invoke_controller($request) {
 
 }
 
-?>
+

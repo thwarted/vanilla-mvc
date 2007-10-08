@@ -37,9 +37,7 @@ $request = preg_replace('@/+@', '/', $request);
 $_SERVER['urirequest'] = $_SERVER['uribase'].$request;
 $request = preg_replace('@^/+@', '', preg_replace('@/+$@', '', $request));
 
-if ($request) {
-    d($request, 'request');
-}
+#if ($request) { d($request, 'request'); }
 
 try {
 
@@ -48,7 +46,7 @@ try {
     #if (count($_POST)) { d($_POST, 'POST variables'); }
     #if (count($_SESSION)) { d($_SESSION, 'SESSION variables'); }
 
-    $controller->render();
+    $controller->_render();
 
 } catch(HTTPException $e) {
 
