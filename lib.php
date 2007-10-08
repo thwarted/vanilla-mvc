@@ -27,7 +27,7 @@ class lib {
 
     */
 
-    public function smarty_factory() {
+    static public function smarty_factory() {
         if (!isset($_SERVER['smartybase'])) {
             $_SERVER['smartybase'] = "/var/tmp/smarty-".md5($_SERVER['SCRIPT_FILENAME']);
         }
@@ -165,7 +165,7 @@ class lib {
         }
     }
 
-    public function log_exception($e) {
+    static public function log_exception($e) {
         $msg = $e->getMessage();
         $code = $e->getCode();
         $msg = preg_replace("/\n/", "<br/>", $msg);
@@ -188,6 +188,36 @@ class lib {
         }
     }
 
+}
+
+function url() {
+    $o = array(preg_replace('@/$@', '', $_SERVER['uribase']));
+    $c = array_values_recursive(func_get_args());
+    foreach ($c as $i) {
+        if (is_object($i)) {
+            $i = get_class($i);
+            if (preg_match('/^controller_(\w+)$/', $i, $m)) {
+                $i = $m[1];
+            } else {
+                throw new Exception("$i does not appear to be a controller");
+            }
+        }
+        $o[] = preg_replace('@^/@', '', preg_replace('@/$@', '', $i));
+    }
+    error_log(var_export($o, true));
+    return join('/', $o);
+}
+
+function array_values_recursive($array) {
+   $flat = array();
+   foreach ($array as $value) {
+        if (is_array($value)) {
+            $flat = array_merge($flat, array_values_recursive($value));
+        } else {
+            $flat[] = $value;
+        }
+    }
+    return $flat;
 }
 
 $__RECMSG = array();
