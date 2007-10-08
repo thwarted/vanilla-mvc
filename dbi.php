@@ -3,6 +3,9 @@
 # this should really be abstracted better, so that DBIstatement can use PDO
 # to do all the parameters in the queries
 
+# TODO
+# for those drivers that use PDO, catch PDOException and map to DBIException
+
 $__dbi_query_count = 0;
 $__dbi_fetchrow_count = 0;
 $__dbi_query_runtime = 0;
@@ -287,7 +290,7 @@ class DBIdbh {
             }
             return $ret;
         }
-        if (is_numeric($value)) {
+        if (is_numeric($value) && intval($value) < 99999) {
             return ($value + 0);
         }
         if ($this->outter_quotes) {
@@ -304,6 +307,15 @@ class DBIdbh {
         return $sth;
     }
 
+    public function do_() { // named thusly to avoid keyword conflict
+        $a = func_get_args();
+        $stmt = array_shift($a);
+        $sth = $this->prepare($stmt);
+        array_shift($a); # remove options, ignore for now
+        $sth->execute_array($a);
+        return $sth->affected_rows();
+    }
+
     public function stats() {
         global $__dbi_query_count;
         global $__dbi_fetchrow_count;
@@ -318,7 +330,7 @@ class DBI {
         if (!isset($a) && strpos($type, 'dbi') === 0) {
             # dbi:DriverName:database=database_name;host=hostname;port=port
             if (preg_match('/^dbi:(\w+):(.+)$/', $type, $m)) {
-                $dbdname = $m[1];
+                $type = $m[1];
                 $ax = split(':', $m[2]);
                 $a = array();
                 foreach ($ax as $x) {
@@ -333,7 +345,7 @@ class DBI {
             }
         }
         $dbdname = "DBD$type";
-        if (class_exists($dbdname)) {
+        if ($type && class_exists($dbdname)) {
             $dbres = call_user_func(array($dbdname, 'connect'), $a);
             if ($dbres) {
                 $dbh = new DBIdbh(new $dbdname($dbres));
@@ -459,8 +471,10 @@ class DBDsqlite2 extends DBDsqlite { # alias
 }
 
 class DBDsqlite3 extends DBD {
-    public function connect($a) {
+    static public function connect($a) {
         $db1 = new PDO('sqlite:'.$a['dbname']);
+        # this should be a passable option
+        $db1->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         return $db1;
     }
     public function quote_includes_enclosing() { return true; }
@@ -469,10 +483,19 @@ class DBDsqlite3 extends DBD {
     }
     public function query($stmt) {
         $c = $this->dbres->prepare($stmt);
+        /* this needs to be revisisted */
+        /* throw a better exception, use DBIException class */
+        if (!$c) {
+            $msg = join("\n", $this->dbres->errorInfo());
+            $e = new DBIException($msg);
+            $e->setStatement($stmt);
+            throw $e;
+        }
         $c->execute();
         return $c;
     }
     public function errno() {
+        # FIXME, should return an integer description, errorCode looks like HYxxxx
         return $this->dbres->errorCode();
     }
     public function error() {
