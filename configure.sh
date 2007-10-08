@@ -130,6 +130,11 @@ $_SERVER['internal_hosts_regexp'] = '';
 # the "default" page
 $_SERVER['default_controller'] = array('example', 'list');
 
+# a list of allowed file extensions that can be served from the views/
+# directory directly
+# this does not apply to media/ directory contents
+$_SERVER['allowed_dynamic_media'] = array('js', 'css');
+
 ?>
 EOF
 fi
