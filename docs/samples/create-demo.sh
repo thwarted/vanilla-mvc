@@ -181,6 +181,17 @@ if (!$exampledbh) {
 EOF
 fi
 
+if [ ! -e setup/zzz-example.setup.php ]; then
+cat > setup/zzz-example.setup.php <<'EOF'
+<?php
+
+# set this to the controller name and method that implements 
+# the "default" page
+$_SERVER['default_controller'] = array('example', 'show');
+
+EOF
+fi
+
 if [ ! -e controllers/example.php ]; then
 cat > controllers/example.php <<'EOF'
 <?php
@@ -297,4 +308,7 @@ class controller_example extends base_controller {
 
 EOF
 fi
+
+chmod ugo+rwx vanilla/docs/samples
+chmod ugo+rw vanilla/docs/samples/exampledb.sqlite3
 
