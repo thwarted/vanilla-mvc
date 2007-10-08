@@ -188,6 +188,16 @@ class lib {
         }
     }
 
+    static public function content_type_from_extension($filename) {
+        if (preg_match('/\.js$/', $filename)) {
+            return "text/javascript";
+        }
+        if (preg_match('/\.css$/', $filename)) {
+            return "text/css";
+        }
+        return "text/plain";
+    }
+
 }
 
 function url() {
@@ -205,7 +215,9 @@ function url() {
         $o[] = preg_replace('@^/@', '', preg_replace('@/$@', '', $i));
     }
     error_log(var_export($o, true));
-    return join('/', $o);
+    $o = join('/', $o);
+    $o = preg_replace('@/\./@', '/', $o);
+    return $o;
 }
 
 function array_values_recursive($array) {
