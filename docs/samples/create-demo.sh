@@ -10,6 +10,8 @@ if [ ! -d ./vanilla -o ! -f ./vanilla/dispatch.php ]; then
     exit 1
 fi
 
+mkdir -p {media,views}/example
+
 if [ ! -e media/example/show.js ]; then
 cat > media/example/show.js <<'EOF'
 /*  this is the example
@@ -160,7 +162,7 @@ EOF
 fi
 
 if [ ! -e setup/example-database.setup.php ]; then
-cat > setup/example-database-setup.php <<'EOF'
+cat > setup/example-database.setup.php <<'EOF'
 <?php
 
 $_dbname = 'vanilla/docs/samples/exampledb.sqlite3';
