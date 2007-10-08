@@ -34,7 +34,7 @@ project,
 =back
 
 You may also need to modify your Apache configuration.  If you elect not to use C<htaccess>
-files or rewrite rules, you can use the Apache C<Alias> directive instead.
+files or rewrite rules, you can use the Apache C<Alias> directive instead.  If you are going to Alias to a subdirectory of your DocumentRoot, do not include the trailing slash in the Alias directive.  Leaving it out will have Apache send a client redirect to the directory name and will properly invoke your application.
 
 It is also recommended that the Apache directive C<AllowEncodedSlashes> be set to C<on>.  By
 default, Apache rejects requests that contain encoded slashes (%2F) with a 404 error.  Disabling
@@ -230,6 +230,16 @@ expands to (in this example)
     'one', 'two', 3
 
 so the query must enclose the named placeholder in C<()> to generate the correct SQL syntax.
+
+Queries can also be done immediately, for the case of a single update, insert or delete query, using the C<do_> function on the database handle:
+
+    $rv = $dbh->do_("insert into table values (?, ?)", NULL, 1, "hello");
+
+The second argument is meant to be a placeholder for database driver specific options; it is currently unused. Note that the passed substitution values are not passed as a single third arugment, but the remainder of the arguments after the second are used as the query values.
+
+The return value is the number of rows affected by the query, which usually only makes sense in insert, delete, or update statements.
+
+Note that the function is named C<do_>, with the trailing underscore, to avoid keyword conflicts with the PHP language.
 
 =head2 Database functions
 
