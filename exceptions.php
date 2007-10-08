@@ -1,6 +1,7 @@
 <?php
 
 class ContextException extends Exception { }
+class NotControllerException extends Exception { }
 
 class DataException extends Exception {
     private $_errormsg = '';
