@@ -214,7 +214,6 @@ function url() {
         }
         $o[] = preg_replace('@^/@', '', preg_replace('@/$@', '', $i));
     }
-    error_log(var_export($o, true));
     $o = join('/', $o);
     $o = preg_replace('@/\./@', '/', $o);
     return $o;
