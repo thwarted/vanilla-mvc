@@ -67,7 +67,8 @@ function invoke_controller($request) {
     }
     if (!$x) {
         $x = $_SERVER['default_controller'];
-    } elseif (count($x) < 2) {
+    }
+    if (count($x) < 2) {
         $x[] = '_default';
         #throw new HTTPException('Moved', 302, mk_invoke_link($_SERVER['default_controller'][0], $_SERVER['default_controller'][1]));
     }
