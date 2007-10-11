@@ -81,16 +81,23 @@ class lib {
         return $smarty;
     }
 
-    public function el($v) {
+    static public function el($v) {
         error_log(var_export($v, true));
     }
 
-    public function qd($v) {
+    static public function qd($v) {
         print "<pre>"; print_r($v); print "</pre>";
     }
 
-    public function debugbox() {
+    static public function client_is_internal_host() {
         if (!$_SERVER['internal_hosts_regexp'] || !preg_match($_SERVER['internal_hosts_regexp'], $_SERVER['REMOTE_ADDR'])) {
+            return false;
+        }
+        return true;
+    }
+
+    static public function debugbox() {
+        if (!lib::client_is_internal_host()) {
             return '';
         }
         $box = "<div id='debugbox' style='clear: both; margin-top: 8em; padding: 4em 0.5em 0px 0.5em;'>";
@@ -133,7 +140,7 @@ class lib {
         print "<html><head><title>Internal Error</title></head><body><h1>Internal Error</h1>$msg<hr/>".$_SERVER["SERVER_SIGNATURE"]."</body></html>";
     }
 
-    # should this be provided functionality
+    # FIXME should this be provided functionality?
     public function enforce_cookie_requirement() {
         $cookiename = 'phpsessid';
         /* safari apparently doesn't send cookies on a HEAD request, 
