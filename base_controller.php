@@ -73,24 +73,41 @@ class base_controller {
         $vn = preg_replace('/\..+$/', '', $this->viewname);
         $b = basename($vn, ".$ext");
         $r = array();
+        if (is_array($_SERVER['all_views_media_paths'])) {
+            foreach ($_SERVER['all_views_media_paths'] as $p) {
+                $g = "$p/*$ext";
+                $files = glob($g);
+                d($g);
+                foreach ($files as $f) {
+                    $ri = $this->__build_media_info($f);
+                    $r[] = $ri;
+                }
+            }
+        }
         foreach ($this->__related_content_searchpaths() as $p) {
             $g = "$p/$b*$ext";
             $files = glob($g);
+                d($g);
             foreach ($files as $f) {
-                $ri = $this->__get_metadata($f);
-                # if it's in the apache served static files directory...
-                if (preg_match('/^media/', $f)) {
-                    # ...provide a URL directly to it
-                    $ri['url'] = url($f);
-                } else {
-                    # ...otherwise serve it through the built-in dynamic
-                    # media controller
-                    $ri['url'] = url('_media', $f);
-                }
+                $ri = $this->__build_media_info($f);
                 $r[] = $ri;
             }
         }
         return $r;
+    }
+    
+    private function __build_media_info($file) {
+        $ri = $this->__get_metadata($file);
+        # if it's in the apache served static files directory...
+        if (preg_match('/^media/', $file)) {
+            # ...provide a URL directly to it
+            $ri['url'] = url($file);
+        } else {
+            # ...otherwise serve it through the built-in dynamic
+            # media controller
+            $ri['url'] = url('_media', $file);
+        }
+        return $ri;
     }
 
     private function __related_content_searchpaths() {
