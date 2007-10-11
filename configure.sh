@@ -135,7 +135,11 @@ $_SERVER['default_controller'] = array('example', 'list');
 # this does not apply to media/ directory contents
 $_SERVER['allowed_dynamic_media'] = array('js', 'css');
 
-?>
+# include paths here that should be searched for related media
+# for all views.  the files must still end in their respective 
+# extensions in order to be found
+$_SERVER['all_views_media_paths'] = array('media/css', 'media/js');
+
 EOF
 fi
 
