@@ -39,6 +39,10 @@ $request = preg_replace('@^/+@', '', preg_replace('@/+$@', '', $request));
 
 #if ($request) { d($request, 'request'); }
 
+if (function_exists("pre_dispatch_hook")) {
+    pre_dispatch_hook($request);
+}
+
 try {
 
     $controller = invoke_controller($request);
