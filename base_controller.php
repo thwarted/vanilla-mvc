@@ -9,15 +9,15 @@ class base_controller {
     protected $stylesheets = array();
     protected $javascripts = array();
 
-    public function __construct($method=NULL) {
-        $this->_in_valid_context($method);
+    public function __construct($targetmethod=NULL) {
+        $this->_in_valid_context($targetmethod);
 
         $this->view = lib::smarty_factory();
         $this->autoRender = true;
 
     }
 
-    protected function _in_valid_context($method=NULL) {
+    protected function _in_valid_context($targetmethod=NULL) {
         # you'll want to raise ContextException here
         # if, for example, this controller requires
         # a session to be logged in, and it's not
