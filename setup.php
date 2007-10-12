@@ -24,4 +24,7 @@ if ($__x = opendir("./setup")) {
     unset($__x);
 }
 
-?>
+# add elements to this array to provide site-wide navigational links
+# to the views
+$_SERVER['link'] = array();
+
