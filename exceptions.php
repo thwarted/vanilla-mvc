@@ -53,5 +53,3 @@ class HTTPNotFound extends HTTPException {
     }
 }
 
-
-?>
