@@ -8,6 +8,10 @@ class base_controller {
     protected $autoRender;
     protected $stylesheets = array();
     protected $javascripts = array();
+    // if allowed_methods is true, ::_invoke will allow
+    // any method to be called 
+    // set to an array of allowed method names otherwise
+    protected $allowed_methods = true;
 
     public function __construct($request) {
         $this->_in_valid_context($request);
@@ -26,12 +30,24 @@ class base_controller {
         if (preg_match('/\W/', $m)) {
             throw new HTTPNotFound('illegal characters in method');
         }
+        if (preg_match('/^_/', $m)) {
+            # FIXME could throw HTTPNotFound here, to avoid 
+            # leaking information about the implementation
+            throw new HTTPUnauthorized();
+        }
         $method = false;
         foreach (array($m, $m.'_') as $trym) {
             if (method_exists($this, $trym)) {
                 $method = $trym;
                 break;
             }
+        }
+        if (is_array($this->allowed_methods)) {
+            if (!in_array($method, $this->allowed_methods)) {
+                throw new HTTPUnauthorized();
+            }
+        } elseif (! $this->allowed_methods ) {
+            throw new HTTPUnauthorized();
         }
         if (!$method) {
             throw new HTTPNotFound(get_class($this).'::'.$method.' not found');
@@ -44,6 +60,7 @@ class base_controller {
                 $r[] = urldecode($v);
             }
         }
+        # all protected and public methods are accessible
         call_user_func_array(array($this, $method), $r);
     }
 
@@ -168,6 +185,8 @@ class base_controller {
 
         $this->view->assign('stylesheets', $this->stylesheets);
         $this->view->assign('javascripts', $this->javascripts);
+
+        $this->view->assign('link', $_SERVER['link']);
 
         if ($this->autoRender) {
             $this->view->display($viewfile);
