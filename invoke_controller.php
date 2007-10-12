@@ -57,23 +57,7 @@ function mk_invoke_link() {
 
 function invoke_controller($request) {
 
-    $x = false;
-    if ($request) {
-        $x = explode('/', $request);
-    }
-
-    if (!isset($_SERVER['default_controller'])) {
-        throw new Exception("default controller not specified");
-    }
-    if (!$x) {
-        $x = $_SERVER['default_controller'];
-    }
-    if (count($x) < 2) {
-        $x[] = 'index';
-        #throw new HTTPException('Moved', 302, mk_invoke_link($_SERVER['default_controller'][0], $_SERVER['default_controller'][1]));
-    }
-
-    $controller = array_shift($x);
+    $controller = array_shift($request);
     if (preg_match('/\W/', $controller)) {
         throw new HTTPNotFound('illegal characters in controller name (1)');
     }
@@ -98,37 +82,7 @@ function invoke_controller($request) {
         throw new HTTPNotFound("controller $controller: code not found");
     }
 
-    if (count($x)) {
-        $m = array_shift($x);
-        if (preg_match('/\W/', $m)) {
-            throw new HTTPNotFound('illegal characters in method');
-        }
-        $method = false;
-        foreach (array($m, $m."_") as $trym) {
-            if (method_exists($controller_class, $trym)) {
-                $method = $trym;
-                break;
-            }
-        }
-        if (!$method) {
-            throw new HTTPNotFound($controller_class."::".$m." not found");
-        }
-        $r = array();
-        foreach ($x as $v) {
-            if (preg_match('/^(\w+)=(.*)$/', $v, $m)) {
-                $_REQUEST[$m[1]] = urldecode($m[2]);
-            } else {
-                $r[] = urldecode($v);
-            }
-        }
-        $controller = new $controller_class($method);
-        # REVIEW/FIXME shouldn't the controller be 
-        # passed the request and invoke the method?
-        # or at least the invocation of the method should be
-        # deferred to the controller class (so it can override)
-        call_user_func_array(array($controller, $method), $r);
-    }
-
+    $controller = new $controller_class($request);
     return $controller;
 
 }

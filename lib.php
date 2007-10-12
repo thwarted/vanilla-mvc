@@ -11,21 +11,23 @@ class lib {
     public static $debugboxshown = false;
     public static $appvars = false;
 
-    /*
-    public function staticdir($f) {
-        if ($f{0} == '/') { $f = substr($f, 1); }
-        return $_SERVER['SQUIB_REPORT_BASE']."/static/$f";
-    }
-
-    public function basedir($f) {
-        if ($f) {
-            if ($f{0} == '/') { $f = substr($f, 1); }
-            return $_SERVER['SQUIB_REPORT_BASE']."/$f";
+    static public function parse_request() {
+        $request = preg_replace('@^'.$_SERVER['uribase'].'@', '', $_SERVER['REQUEST_URI']);
+        $request = preg_replace('@\?.*$@', '', $request);
+        $request = preg_replace('@/+@', '/', $request);
+        $_SERVER['urirequest'] = $_SERVER['uribase'].$request;
+        $request = preg_replace('@^/+@', '', preg_replace('@/+$@', '', $request));
+        if ($request) {
+            $request = explode('/', $request);
+        } else {
+            if (!isset($_SERVER['default_controller'])) {
+                throw new Exception("default controller not specified");
+            }
+            $request = $_SERVER['default_controller'];
         }
-        return $_SERVER['SQUIB_REPORT_BASE'];
-    }
 
-    */
+        return $request;
+    }
 
     static public function smarty_factory() {
         if (!isset($_SERVER['smartybase'])) {

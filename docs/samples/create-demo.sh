@@ -201,15 +201,15 @@ require_once "models/examplecustomer.php";
 class controller_example extends base_controller {
     private $cform;
 
-    public function __construct() {
-        parent::__construct();
+    public function __construct($request) {
+        parent::__construct($request);
 
         # put additional constructor stuff here
         # this is a good place to create forms that are used by all methods
         # in this controller
     }
 
-    protected function in_valid_context($method=NULL) {
+    protected function _in_valid_context($request=array()) {
         # you'll want to raise ContextException here
         # if, for example, this controller requires
         # a session to be logged in, and it's not

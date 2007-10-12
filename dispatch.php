@@ -30,20 +30,15 @@ try {
     exit;
 }
 
-
-$request = preg_replace('@^'.$_SERVER['uribase'].'@', '', $_SERVER['REQUEST_URI']);
-$request = preg_replace('@\?.*$@', '', $request);
-$request = preg_replace('@/+@', '/', $request);
-$_SERVER['urirequest'] = $_SERVER['uribase'].$request;
-$request = preg_replace('@^/+@', '', preg_replace('@/+$@', '', $request));
-
-#if ($request) { d($request, 'request'); }
-
-if (function_exists("pre_dispatch_hook")) {
-    pre_dispatch_hook($request);
-}
-
 try {
+
+    $request = lib::parse_request();
+
+    #if ($request) { d($request, 'request'); }
+
+    if (function_exists("pre_dispatch_hook")) {
+        pre_dispatch_hook($request);
+    }
 
     $controller = invoke_controller($request);
 

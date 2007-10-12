@@ -9,15 +9,45 @@ class base_controller {
     protected $stylesheets = array();
     protected $javascripts = array();
 
-    public function __construct($targetmethod=NULL) {
-        $this->_in_valid_context($targetmethod);
+    public function __construct($request) {
+        $this->_in_valid_context($request);
 
         $this->view = lib::smarty_factory();
         $this->autoRender = true;
 
+        $this->_invoke($request);
     }
 
-    protected function _in_valid_context($targetmethod=NULL) {
+    protected function _invoke($req = array()) {
+        if (!$req || !is_array($req)) {
+            $req = array('index'); # default method name
+        }
+        $m = array_shift($req);
+        if (preg_match('/\W/', $m)) {
+            throw new HTTPNotFound('illegal characters in method');
+        }
+        $method = false;
+        foreach (array($m, $m.'_') as $trym) {
+            if (method_exists($this, $trym)) {
+                $method = $trym;
+                break;
+            }
+        }
+        if (!$method) {
+            throw new HTTPNotFound(get_class($this).'::'.$method.' not found');
+        }
+        $r = array();
+        foreach ($req as $v) {
+            if (preg_match('/^(\w+)=(.*)$/', $v, $m)) {
+                $_REQUEST[$m[1]] = urldecode($m[2]);
+            } else {
+                $r[] = urldecode($v);
+            }
+        }
+        call_user_func_array(array($this, $method), $r);
+    }
+
+    protected function _in_valid_context($request=array()) {
         # you'll want to raise ContextException here
         # if, for example, this controller requires
         # a session to be logged in, and it's not
