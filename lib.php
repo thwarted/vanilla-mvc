@@ -224,6 +224,11 @@ function url() {
         $o[] = preg_replace('@^/@', '', preg_replace('@/$@', '', $i));
     }
     $o = join('/', $o);
+    # if we are generating an empty path (to the root of the site)
+    # then set it to the base uri
+    if (!$o) {
+        $o = $_SERVER['uribase'];
+    }
     $o = preg_replace('@/\./@', '/', $o);
     return $o;
 }
@@ -270,4 +275,3 @@ function d($msg, $desc = '') {
 
 set_exception_handler(array('lib', 'log_exception'));
 
-?>
