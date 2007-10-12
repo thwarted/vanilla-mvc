@@ -53,3 +53,9 @@ class HTTPNotFound extends HTTPException {
     }
 }
 
+class HTTPUnauthorized extends HTTPException {
+    public function __construct($extramsg = '') {
+        parent::__construct('Unauthorized', 401);
+    }
+}
+
