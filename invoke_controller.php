@@ -104,7 +104,7 @@ function invoke_controller($request) {
             throw new HTTPNotFound('illegal characters in method');
         }
         $method = false;
-        foreach (array($m, "_$m") as $trym) {
+        foreach (array($m, $m."_") as $trym) {
             if (method_exists($controller_class, $trym)) {
                 $method = $trym;
                 break;
