@@ -33,6 +33,7 @@ try {
 try {
 
     $request = lib::parse_request();
+    $_SERVER['request'] = $request;
 
     #if ($request) { d($request, 'request'); }
 
