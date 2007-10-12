@@ -220,6 +220,10 @@ function url() {
             } else {
                 throw new Exception("$i does not appear to be a controller");
             }
+        } elseif (is_string($i) && preg_match('/^controller_(\w+)$/', $i, $m)) {
+            # could pass in the result of get_class or __CLASS__;
+            # in that case, strip off the prefixing controller_ part
+            $i = $m[1];
         }
         $o[] = preg_replace('@^/@', '', preg_replace('@/$@', '', $i));
     }
