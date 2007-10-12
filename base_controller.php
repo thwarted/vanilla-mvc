@@ -77,7 +77,6 @@ class base_controller {
             foreach ($_SERVER['all_views_media_paths'] as $p) {
                 $g = "$p/*$ext";
                 $files = glob($g);
-                d($g);
                 foreach ($files as $f) {
                     $ri = $this->__build_media_info($f);
                     $r[] = $ri;
@@ -87,7 +86,6 @@ class base_controller {
         foreach ($this->__related_content_searchpaths() as $p) {
             $g = "$p/$b*$ext";
             $files = glob($g);
-                d($g);
             foreach ($files as $f) {
                 $ri = $this->__build_media_info($f);
                 $r[] = $ri;
