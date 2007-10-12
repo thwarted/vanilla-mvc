@@ -8,14 +8,14 @@ foreach (array('setup', 'models', 'views', 'controllers') as $__x) {
     }
 }
 
-require_once "setup/global_conf.php";
-
 require_once "vanilla/lib.php";
 require_once "vanilla/exceptions.php";
 require_once "vanilla/form.php";
 require_once "vanilla/dbi.php";
 require_once "vanilla/base_controller.php";
 require_once "vanilla/invoke_controller.php";
+
+require_once "setup/global_conf.php";
 
 $_SERVER['uribase'] = preg_replace('@/vanilla/dispatch.php$@', '', $_SERVER['SCRIPT_NAME']);
 $_SERVER['uribase'] .= '/';
