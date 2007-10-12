@@ -69,7 +69,7 @@ function invoke_controller($request) {
         $x = $_SERVER['default_controller'];
     }
     if (count($x) < 2) {
-        $x[] = '_default';
+        $x[] = 'index';
         #throw new HTTPException('Moved', 302, mk_invoke_link($_SERVER['default_controller'][0], $_SERVER['default_controller'][1]));
     }
 
@@ -121,7 +121,11 @@ function invoke_controller($request) {
                 $r[] = urldecode($v);
             }
         }
-        $controller = new $controller_class($m);
+        $controller = new $controller_class($method);
+        # REVIEW/FIXME shouldn't the controller be 
+        # passed the request and invoke the method?
+        # or at least the invocation of the method should be
+        # deferred to the controller class (so it can override)
         call_user_func_array(array($controller, $method), $r);
     }
 
