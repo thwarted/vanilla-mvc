@@ -106,8 +106,8 @@ class lib {
 
         $box .= "<table width='100%' border='1' rules='rows,cols' cellpadding='4'>\n";
 
-        $_SERVER['REQUEST_TIME_END'] = microtime(true);
-        $runtime = $_SERVER['REQUEST_TIME_END'] - $_SERVER['REQUEST_TIME'];
+        $_SERVER['endtime'] = microtime(true);
+        $runtime = $_SERVER['endtime'] - $_SERVER['starttime'];
         $box .= lib::trow('execution time', sprintf('%0.6f sec', $runtime));
 
         global $dbh;

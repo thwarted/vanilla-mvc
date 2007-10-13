@@ -1,5 +1,7 @@
 <?php
 
+$_SERVER['starttime'] = microtime(true);
+
 chdir(dirname(dirname($_SERVER['SCRIPT_FILENAME'])));
 
 foreach (array('setup', 'models', 'views', 'controllers') as $__x) {
