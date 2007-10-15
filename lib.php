@@ -227,6 +227,9 @@ function url() {
         }
         $o[] = preg_replace('@^/@', '', preg_replace('@/$@', '', $i));
     }
+    if (count($o) == 1) {
+        $o[] = '';
+    }
     $o = join('/', $o);
     # if we are generating an empty path (to the root of the site)
     # then set it to the base uri
