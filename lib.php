@@ -212,6 +212,9 @@ class lib {
 function url() {
     $o = array(preg_replace('@/$@', '', $_SERVER['uribase']));
     $c = array_values_recursive(func_get_args());
+    if (is_array($_SERVER['default_controller']) && $c === $_SERVER['default_controller']) {
+        return $_SERVER['uribase'];
+    }
     foreach ($c as $i) {
         if (is_object($i)) {
             $i = get_class($i);
