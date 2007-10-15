@@ -376,6 +376,14 @@ class form_input_radio_series extends formfield {
         return $this;
     }
 
+    public function verify() {
+        if (isset($this->_required) && $this->_required && (!isset($this->_value) || empty($this->_value))) {
+            $this->_valid = false;
+            $this->_errormsg = 'required';
+        }
+        return parent::verify();
+    }
+
     public function html() {
         if (!isset($this->__options) || !is_array($this->__options)) {
             throw new Exception($this->_name."(".get_class($this).") does not have an options list");
