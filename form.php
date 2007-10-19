@@ -438,7 +438,7 @@ class form implements Countable, ArrayAccess, Iterator {
     private $_data;
     private $_submit_method;
     private $_submit_action;
-    private $_fields;
+    private $_fields = array();
     private $_message;
     private $_error_count;
     private $_processed = false;
