@@ -441,6 +441,7 @@ class form implements Countable, ArrayAccess, Iterator {
     private $_fields;
     private $_message;
     private $_error_count;
+    private $_processed = false;
 
     public function __construct($name, $datasource='REQUEST') {
         $this->_name = $name;
@@ -520,10 +521,18 @@ class form implements Countable, ArrayAccess, Iterator {
     }
     
     public function has_errors() {
-        return $this->_error_count;
+        return ($this->_error_count != 0);
+    }
+
+    public function force_failure() {
+        $this->_error_count = -1;
     }
 
     public function verify() {
+        if ($this->_error_count < 0) {
+            # failure was forced
+            return false;
+        }
         $this->_error_count = 0;
         if (is_array($this->_data)) {
             foreach ($this as $name=>$field) {
@@ -535,8 +544,15 @@ class form implements Countable, ArrayAccess, Iterator {
         return !($this->_error_count);
     }
 
+    public function processed($n = NULL) {
+        if (isset($n)) {
+            $this->_processed = $n;
+        }
+        return $this->_processed;
+    }
+
     public function start() {
-        $r = '<form id="'.$this->_name.'" name="'.$this->_name.'" method="'.$this->_submit_method.'"';
+        $r = '<form id="'.$this->_name.'" method="'.$this->_submit_method.'"';
         if ($this->_submit_action) {
             $r .= ' action="'.$this->_submit_action.'"';
         }
