@@ -16,6 +16,7 @@ require_once "vanilla/form.php";
 require_once "vanilla/dbi.php";
 require_once "vanilla/base_controller.php";
 require_once "vanilla/invoke_controller.php";
+require_once "vanilla/base_model.php";
 
 require_once "setup/global_conf.php";
 
@@ -39,9 +40,14 @@ try {
 
     #if ($request) { d($request, 'request'); }
 
+    # FIXME this really needs to be better integrated
     if (function_exists("pre_dispatch_hook")) {
         pre_dispatch_hook($request);
     }
+
+    # FIXME perhaps the the constructor on the controller
+    #       is what needs to invoke form handlers
+    invoke_form_handler();
 
     $controller = invoke_controller($request);
 
@@ -74,6 +80,6 @@ try {
 
     header("HTTP/1.1 500 Internal Error");
     lib::log_exception($e);
+
 }
 
-?>
