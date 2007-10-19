@@ -84,7 +84,7 @@ class lib {
     }
 
     static public function el($v) {
-        error_log(var_export($v, true));
+        error_log(preg_replace('/\n/', '', var_export($v, true)));
     }
 
     static public function qd($v) {
@@ -177,19 +177,22 @@ class lib {
     static public function log_exception($e) {
         $msg = $e->getMessage();
         $code = $e->getCode();
+        if (method_exists($e, "getStatement")) {
+            $msg .= "<br/>".$e->getStatement();
+        }
         $msg = preg_replace("/\n/", "<br/>", $msg);
         print "<h2>".get_class($e)." (code $code)</h2><tt>$msg</tt>\n";
         if ($_SERVER['show_traceback_in_browser']) {
             print "<hr/>Traceback: <pre>";
         }
         error_log("cwd is ".getcwd());
+        # FIXME should use the getTrace() method instead for easier/more-accurate formatting
         $x = $e->getTraceAsString();
         foreach (explode("\n", $x) as $l) {
-            $l = preg_replace('@(\d) '.$_SERVER['filebase'].'(.+)@', '\1 \2', $l);
+            $l = preg_replace('@(\d) '.$_SERVER['filebase'].'/(.+)@', '\1 \2', $l);
             error_log($l);
             if ($_SERVER['show_traceback_in_browser']) {
-                $l = preg_replace('/(\d\)|function\]: )/', '$1<strong>', $l);
-                print "$l</strong>\n";
+                print "$l\n";
             }
         }
         if ($_SERVER['show_traceback_in_browser']) {
