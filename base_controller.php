@@ -2,7 +2,7 @@
 
 require_once "vanilla/lib.php";
 
-class base_controller {
+abstract class base_controller {
     protected $viewname;
     protected $view;
     protected $autoRender;
