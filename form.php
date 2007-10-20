@@ -146,7 +146,7 @@ class formfield {
         if ((!isset($this->_valid) || $this->_call_validator_always) && $this->_validationfunc) {
             $r = call_user_func($this->_validationfunc, $this->_value, $this->_name, $this->_originform);
             if (!is_array($r) || count($r) != 3) {
-                throw new Exception(var_dump($method, true)." did not return a three element array");
+                throw new Exception(var_export($this->_validationfunc, true)." did not return a three element array");
             }
             $this->_valid = $r[0] ? true : false; # convert to boolean
             $this->_value = $r[1];
