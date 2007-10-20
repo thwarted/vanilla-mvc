@@ -72,6 +72,16 @@ class smarty_extensions {
         }
     }
 
+    public function modifier_dumpform($v) {
+        if (is_object($v) && is_a($v,'form')) {
+            $a = array();
+            foreach($v as $fn=>$fo) {
+                $a[$fn] = $fo->type();
+            }
+            d($a);
+        }
+    }
+
     public function modifier_slice($v, $o, $l = NULL, $p = NULL) {
 
         if (!empty($p))
