@@ -1,17 +1,87 @@
 <?php
 
-class base_model_data {
-    static public $___table = array();
+class _object_cache {
+    static $cache = array();
+
+    public static function store($class, $pk, $o) {
+        lib::el(sprintf('objcache assigning %s(%d)', $class, $o->$PK));
+        self::$cache[$class][$pk] = $o;
+    }
+
+    public static function get($class, $pk) {
+        if (isset(self::$cache[$class][$pk])) {
+            lib::el(sprintf('objcache     using %s(%d)', $class, $o->$PK));
+            return self::$cache[$class][$pk];
+        }
+        return NULL;
+    }
+
+    public static function forget($class, $pk) {
+        unset(self::$cache[$class][$pk]);
+    }
 }
 
+class _model_data {
+    static public $table = array();
+    static public $primary_key = array();
+    static public $has_one = array();
+    static public $has_collection = array();
+}
+
+class empty_model { 
+    public function __call($m, $a) {
+        return NULL;
+    }
+
+    public function __get($n) {
+        return NULL;
+    }
+
+    public function __set($n, $v) {
+        return;
+    }
+
+    public function __isset($n) {
+        return false;
+    }
+
+    public function __unset($n) {
+        return;
+    }
+}
+
+
 class base_model {
+    protected $__members = array();
     protected $__original_values = array();
 
     public function table($t) {
-        base_model_data::$___table[get_class($this)] = $t;
+        _model_data::$table[get_class($this)] = $t;
+        _model_data::$primary_key[get_class($this)] = 'id';
+        _model_data::$has_one[get_class($this)] = array();
+        _model_data::$has_collection[get_class($this)] = array();
+    }
+
+    public function primary_key($pk) {
+        _model_data::$primary_key[get_class($this)] = $pk;
+    }
+
+    public function has_one($model_name, $bycol = NULL) {
+        if (!isset($bycol)) {
+            $bycol = sprintf('%s_id', $model_name);
+        }
+        _model_data::$has_one[get_class($this)][$model_name] = $bycol;
+    }
+    
+    public function has_collection($model_name, $bycol = NULL) {
+        if (!isset($bycol)) {
+            $bycol = sprintf('%s_id', $model_name);
+        }
+        _model_data::$has_collection[get_class($this)][$model_name] = $bycol;
     }
 
     public function __construct($a=array()) {
+        $this->__members = array();
         $this->__original_values = array();
         foreach ($a as $n=>$v) {
             $this->$n = $v;
@@ -19,17 +89,64 @@ class base_model {
     }
 
     public function __set($n, $v) {
-        if (!isset($this->__original_values[$n])) {
+        if (!array_key_exists($n, $this->__original_values) 
+                && !in_array($n, _model_data::$has_one[get_class($this)])) {
             $this->__original_values[$n] = $v;
         }
-        $this->$n = $v;
+        $this->__members[$n] = $v;
+    }
+
+    private function __get_one($n) {
+        if (!isset($this->__members[$n])) {
+            #lib::el("demand loading single $n");
+            $PK = _model_data::$primary_key[get_class($this)];
+            $fsk = _model_data::$has_one[get_class($this)][$n];
+            $this->__members[$n] = model($n)->find_first(array($fsk=>$this->$PK));
+        }
+    }
+
+    private function __get_collection($n) {
+        if (!isset($this->__members[$n])) {
+            #lib::el("demand loading collection $n");
+            $PK = _model_data::$primary_key[get_class($this)];
+            $fsk = _model_data::$has_collection[get_class($this)][$n];
+            $this->__members[$n] = model($n)->find(array($fsk=>$this->$PK));
+        }
+    }
+
+    public function __get($n) {
+        if (isset(_model_data::$has_one[get_class($this)][$n])) {
+            $this->__get_one($n);
+        }
+        if (isset(_model_data::$has_collection[get_class($this)][$n])) {
+            $this->__get_collection($n);
+        }
+        return $this->__members[$n];
+    }
+
+    public function __isset($n) {
+        return isset($this->__members[$n]);
+    }
+
+    public function __unset($n) {
+        unset($this->__members[$n]);
     }
 
     public function commit() {
         global $dbh;
 
-        if (isset($this->id)) {
+        $PK = _model_data::$primary_key[get_class($this)];
+        if (isset($this->$PK)) {
             $this->_commit_update();
+            /*
+            foreach (_model_data::$has_one[get_class($this)] as $mn=>$fsk) {
+                $x = $this->__members[$mn];
+                lib::qd($x);
+                if (is_object($x) && is_a($x, $mn)) {
+                    $x->commit();
+                }
+            }
+            */
         } else {
             $this->_commit_insert();
         }
@@ -38,25 +155,37 @@ class base_model {
 
     private function _commit_update() {
         # FIXME use dbi identifer quoting
-        $q = "update ".base_model_data::$___table[get_class($this)]." set ";
+        $q = "update "._model_data::$table[get_class($this)]." set ";
         $f = array();
         $s = array();
         foreach ($this->__original_values as $n=>$ov) {
+            #lib::el(array(get_class($this), $n, $ov, $this->$n));
+            if (isset(_model_data::$has_one[get_class($this)][$n])
+             || isset(_model_data::$has_collection[get_class($this)][$n])) {
+                # don't recursive update models/sub-objects
+                # developer must manually invoke update on those
+                next;
+            }
             if ( ! ($this->$n === $ov) ) {
                 # FIXME use dbi identifer quoting
                 $f[] = sprintf('`%s` = ?', $n);
                 $s[] = $this->$n;
             }
         }
-        $q .= join(', ', $f);
-        $q .= " where id = ?";
-        $s[] = $this->id;
+        if (count($s)) { # else nothing to update, nothing changed
+            $q .= join(', ', $f);
+            $PK = _model_data::$primary_key[get_class($this)];
+            # FIXME use dbi identifer quoting
+            $q .= " where $PK = ?";
+            $s[] = $this->$PK;
 
-        global $dbh;
-        d($q);
-        d($s);
-        $sth = $dbh->prepare($q);
-        $sth->execute_array($s);
+            global $dbh;
+            d($q);
+            d($s);
+            $sth = $dbh->prepare($q);
+            $sth->execute_array($s);
+            #lib::el($sth->_stmt());
+        }
     }
 
     private function _commit_insert() {
@@ -64,12 +193,18 @@ class base_model {
         $f = array();
         $s = array();
         foreach ($this->__original_values as $n=>$c) {
+            if (isset(_model_data::$has_one[get_class($this)][$n])
+             || isset(_model_data::$has_collection[get_class($this)][$n])) {
+                # don't recursive update models/sub-objects
+                # developer must manually invoke update on those
+                next;
+            }
             $f[] = $n;
             $s[] = $this->$n;
         }
         # FIXME use dbi identifer quoting
         $x = join(', ', array_fill(0, count($f), '?'));
-        $q = "insert into ".base_model_data::$___table[get_class($this)]
+        $q = "insert into "._model_data::$table[get_class($this)]
                 ." (".join(', ', $f).") values (".$x.")";
 
         global $dbh;
@@ -82,18 +217,21 @@ class base_model {
         $sth = $dbh->prepare('select last_insert_id()');
         $sth->execute();
         list($id) = $sth->fetchrow_array();
-        $this->id = $id;
+        $PK = _model_data::$primary_key[get_class($this)];
+        $this->$PK = $id;
     }
 
     public function _refresh() {
         global $dbh;
 
-        if (isset($this->id) && !$this->id) {
+        $PK = _model_data::$primary_key[get_class($this)];
+        if (isset($this->$PK) && $this->$PK) {
             # FIXME use DBI identifer quoting
-            $q = "select * from ".base_model_data::$___table[get_class($this)]." where id = ? limit 1";
+            $q = "select * from "._model_data::$table[get_class($this)]." where $PK = ? limit 1";
             $sth = $dbh->prepare($q);
-            $sth->execute($this->id);
+            $sth->execute($this->$PK);
             $this->__original_values = array();
+            $this->__members = array();
             $sth->fetchrow_object($this);
         }
     }
@@ -108,9 +246,10 @@ class base_model {
             }
         }
 
+        $PK = _model_data::$primary_key[get_class($this)];
         if (intval($cond).'' == "$cond") {
             $a = array($cond);
-            $where = 'id = ?';
+            $where = $PK.' = ?';
         } elseif (is_array($cond)) {
             $a = array();
             $where = array();
@@ -137,15 +276,20 @@ class base_model {
 
         global $dbh;
         # FIXME use DBI identifer quoting
-        $q = "select * from ".base_model_data::$___table[get_class($this)]." where ".$where;
+        $q = "select * from "._model_data::$table[get_class($this)]." where ".$where;
         if (isset($limit)) {
             $q .= " limit $limit";
         }
         $sth = $dbh->prepare($q);
         $sth->execute_array($a);
-        d($sth->_stmt());
         $r = array();
-        while($o = $sth->fetchrow_object(get_class($this))) {
+        $class = get_class($this);
+        while($o = $sth->fetchrow_object($class)) {
+            if ($x = _object_cache::get($class, $o->$PK)) {
+                $o = $x;
+            } else {
+                _object_cache::store($class, $o->$PK, $o);
+            }
             $r[] = $o;
         }
         return $r;
