@@ -44,7 +44,7 @@ class formfield {
         $this->_value = $value;
         $this->_attr = is_array($attr) ? $attr : array();
 
-        $this->_required = NULL;
+        $this->_required = false;
         $this->_valid = NULL;
         $this->_label = '';
         $this->_id = NULL;
@@ -116,6 +116,7 @@ class formfield {
     }
 
     public function required($r = true) {
+        $r = !!$r; # convert to boolean
         $this->_required = $r;
         return $this;
     }
@@ -137,20 +138,29 @@ class formfield {
 
     public function verify() {
         if (is_bool($this->_valid)) {
+            # we've already run the verifier, don't do it again
             return $this->_valid;
         }
-        if (isset($this->_required) && $this->_required && isset($this->_value) && empty($this->_value)) {
-            $this->_valid = false;
-            $this->_errormsg = 'required';
-        }
-        if ((!isset($this->_valid) || $this->_call_validator_always) && $this->_validationfunc) {
-            $r = call_user_func($this->_validationfunc, $this->_value, $this->_name, $this->_originform);
-            if (!is_array($r) || count($r) != 3) {
-                throw new Exception(var_export($this->_validationfunc, true)." did not return a three element array");
+        if ($this->_required) {
+            if (isset($this->_value) && empty($this->_value)) {
+                $this->_valid = false;
+                $this->_errormsg = 'required';
             }
-            $this->_valid = $r[0] ? true : false; # convert to boolean
-            $this->_value = $r[1];
-            $this->_errormsg = $r[2];
+        } else {
+            if (empty($this->_value)) {
+                $this->_valid = true;
+            }
+        }
+        if (!isset($this->_valid) || $this->_call_validator_always) {
+            if ($this->_validationfunc) {
+                $r = call_user_func($this->_validationfunc, $this->_value, $this->_name, $this->_originform);
+                if (!is_array($r) || count($r) != 3) {
+                    throw new Exception(var_export($this->_validationfunc, true)." did not return a three element array");
+                }
+                $this->_valid = $r[0] ? true : false; # convert to boolean
+                $this->_value = $r[1];
+                $this->_errormsg = $r[2];
+            }
         }
         if (!isset($this->_valid)) {
             $this->_valid = true;
