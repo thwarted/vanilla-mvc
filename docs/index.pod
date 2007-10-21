@@ -352,7 +352,12 @@ After creation, the form should be told its submission method (get or post) and 
     $form->method('post');
     $form->action(url);
 
-VanillaMVC provides a utility function called C<mk_invoke_link> that will return a URL usable for creating links to other controllers in a portable way.  C<mk_invoke_link> can be used to create the URL being passed to the C<action> method.
+VanillaMVC provides a utility function called C<url> that will return a URL usable for creating links to other controllers in a portable way.  C<url> can be used to create the URL being passed to the C<action> method.  If it receives an object, it will check to make sure it is a controller (via it's name only, not through inheritance).  If a string is received that matches C</^controller_(\w+)$/>, then the controller prefix is stripped and the result is used as the controller name to invoke.
+
+    url($this, 'method', 'arg1') # inside a controller
+    url(array($this, 'method'), 'arg1, $somearray)
+    url($this) # invokes the index method (or the default method) on the current controller
+    url('controller_items', 'list') # invokes items::list
 
 =head2 Populating a form with fields
 
