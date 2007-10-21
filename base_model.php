@@ -3,27 +3,40 @@
 class _object_cache {
     static $cache = array();
 
-    public static function store($class, $pk, $o) {
-        lib::el(sprintf('objcache assigning %s(%d)', $class, $o->$PK));
-        self::$cache[$class][$pk] = $o;
+    public static function store($class, $pkvalue, $o) {
+        lib::el(sprintf('objcache assigning %s(%d)', $class, $pkvalue));
+        self::$cache[$class][$pkvalue] = $o;
     }
 
-    public static function get($class, $pk) {
-        if (isset(self::$cache[$class][$pk])) {
-            lib::el(sprintf('objcache     using %s(%d)', $class, $o->$PK));
-            return self::$cache[$class][$pk];
+    public static function get($class, $pkvalue) {
+        if ( isset(self::$cache[$class][$pkvalue]) && is_object(self::$cache[$class][$pkvalue]) ) {
+            lib::el(sprintf('objcache     using %s(%d)', $class, $pkvalue));
+            return self::$cache[$class][$pkvalue];
         }
+        #lib::el(sprintf('objcache getfailed %s(%d)', $class, $pkvalue));
         return NULL;
+    }
+
+    public static function dump($pre='') {
+        print "$pre<pre>";
+        print_r(self::$cache);
+        print "</pre><hr/>";
+        #foreach (self::$cache as $c=>$a) { foreach ($a as $p=>$o) { print "$c = $p\n"; } }
     }
 
     public static function forget($class, $pk) {
         unset(self::$cache[$class][$pk]);
+    }
+
+    public static function xflush() {
+        self::$cache = array();
     }
 }
 
 class _model_data {
     static public $table = array();
     static public $primary_key = array();
+    static public $primary_key_is_foreign = array();
     static public $has_one = array();
     static public $has_collection = array();
 }
@@ -58,12 +71,14 @@ class base_model {
     public function table($t) {
         _model_data::$table[get_class($this)] = $t;
         _model_data::$primary_key[get_class($this)] = 'id';
+        _model_data::$primary_key_is_foreign[get_class($this)] = false;
         _model_data::$has_one[get_class($this)] = array();
         _model_data::$has_collection[get_class($this)] = array();
     }
 
-    public function primary_key($pk) {
+    public function primary_key($pk, $isforeign=false) {
         _model_data::$primary_key[get_class($this)] = $pk;
+        _model_data::$primary_key_is_foreign[get_class($this)] = $isforeign;
     }
 
     public function has_one($model_name, $bycol = NULL) {
@@ -136,7 +151,12 @@ class base_model {
         global $dbh;
 
         $PK = _model_data::$primary_key[get_class($this)];
-        if (isset($this->$PK)) {
+        # FIXME review this
+        # the primary key may be a foreign key in a one-to-one mapping
+        # which means we set the primary key to the remote value
+        # do an "insert or replace" or "insert on duplicate key update.."
+        # then
+        if (isset($this->$PK) && !_model_data::$primary_key_is_foreign[get_class($this)]) {
             $this->_commit_update();
             /*
             foreach (_model_data::$has_one[get_class($this)] as $mn=>$fsk) {
@@ -232,6 +252,7 @@ class base_model {
             $sth->execute($this->$PK);
             $this->__original_values = array();
             $this->__members = array();
+            # FIXME iterate over has_one and has_collection and force updates on them too
             $sth->fetchrow_object($this);
         }
     }
