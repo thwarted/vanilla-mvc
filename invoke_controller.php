@@ -44,7 +44,7 @@ function invoke_form_handler() {
                 if (file_exists($modelfile)) {
                     require_once $modelfile;
                     if (method_exists($model, $handlefunc)) {
-                        call_user_func(array($model, $handlefunc));
+                        call_user_func(array(model($model), $handlefunc));
                     }
                 } 
             } # no - in form name
