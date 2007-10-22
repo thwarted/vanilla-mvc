@@ -126,16 +126,26 @@ abstract class base_controller {
                 $files = glob($g);
                 foreach ($files as $f) {
                     $ri = $this->__build_media_info($f);
-                    $r[] = $ri;
+                    $r[$f] = $ri;
                 }
             }
         }
         foreach ($this->__related_content_searchpaths() as $p) {
-            $g = "$p/$b*$ext";
-            $files = glob($g);
-            foreach ($files as $f) {
-                $ri = $this->__build_media_info($f);
-                $r[] = $ri;
+            # order, and thus priority, of individual CSS files is undefined
+            # rules should not overlap though
+            # FIXME ideally, we'd want $b*$ext to appear AFTER the rest
+            # since they would presumablly contain definitions we want to override
+            # in the general cases
+            # need a custom sort function for that, methinks.  Leaving it with the
+            # loop for now to keep it obvious how things could work
+            foreach (array("$p/$b*$ext", "$p/*$ext") as $g) {
+                $files = glob($g);
+                foreach ($files as $f) {
+                    if (!isset($r[$f])) {
+                        $ri = $this->__build_media_info($f);
+                        $r[$f] = $ri;
+                    }
+                }
             }
         }
         return $r;
