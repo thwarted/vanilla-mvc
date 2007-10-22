@@ -39,6 +39,8 @@ class _model_data {
     static public $primary_key_is_foreign = array();
     static public $has_one = array();
     static public $has_collection = array();
+    static public $belongs_to = array();
+    static public $references = array();
 }
 
 class empty_model { 
@@ -81,7 +83,12 @@ class base_model {
         _model_data::$primary_key_is_foreign[get_class($this)] = $isforeign;
     }
 
+    # FIXME FIXME FIXME
+    # do these comments really/accurately reflect the intent of these declarations?
     public function has_one($model_name, $bycol = NULL) {
+        # model_name.bycol points to this
+        # accessible via this->model_name
+        # this->model_name->bycol should point to this
         if (!isset($bycol)) {
             $bycol = sprintf('%s_id', $model_name);
         }
@@ -89,11 +96,35 @@ class base_model {
     }
     
     public function has_collection($model_name, $bycol = NULL) {
+        # more than one model_name.bycol points to this
+        # accessible via this->model_name as an array
+        # this->model_name[...]->bycol should point to this
         if (!isset($bycol)) {
             $bycol = sprintf('%s_id', $model_name);
         }
         _model_data::$has_collection[get_class($this)][$model_name] = $bycol;
     }
+
+    public function belongs_to($model_name, $bycol = NULL) {
+        # this.bycol points to model_name (the inverse relationship of has_one and has_collection)
+        # accessible via this->model_name
+        # this->bycol is updatable
+        if (!isset($bycol)) {
+            $bycol = sprintf('%s_id', $model_name);
+        }
+        _model_data::$belongs_to[get_class($this)][$model_name] = $bycol;
+    }
+
+    public function references($model_name, $bycol = NULL) {
+        # this.bycol points to model_name
+        # accessible via this->model_name
+        # this->bycol is updatable
+        if (!isset($bycol)) {
+            $bycol = sprintf('%s_id', $model_name);
+        }
+        _model_data::$references[get_class($this)][$model_name] = $bycol;
+    }
+    # FIXME not quite sure anymore what the difference is between ::belongs_to and ::references
 
     public function __construct($a=array()) {
         $this->__members = array();
@@ -129,12 +160,38 @@ class base_model {
         }
     }
 
+    private function __get_belongs_to($n) {
+        if (!isset($this->__members[$n])) {
+            lib::el("demand loading belongs to $n");
+            $fsk = _model_data::$belongs_to[get_class($this)][$n];
+            if (isset($this->$fsk)) {
+                $this->__members[$n] = model($n)->find_first($this->$fsk);
+            }
+        }
+    }
+
+    private function __get_references($n) {
+        if (!isset($this->__members[$n])) {
+            lib::el("demand loading referenced $n");
+            $fsk = _model_data::$references[get_class($this)][$n];
+            if (isset($this->$fsk)) {
+                $this->__members[$n] = model($n)->find_first($this->$fsk);
+            }
+        }
+    }
+
     public function __get($n) {
         if (isset(_model_data::$has_one[get_class($this)][$n])) {
             $this->__get_one($n);
         }
         if (isset(_model_data::$has_collection[get_class($this)][$n])) {
             $this->__get_collection($n);
+        }
+        if (isset(_model_data::$belongs_to[get_class($this)][$n])) {
+            $this->__get_belongs_to($n);
+        }
+        if (isset(_model_data::$references[get_class($this)][$n])) {
+            $this->__get_references($n);
         }
         return $this->__members[$n];
     }
@@ -145,6 +202,27 @@ class base_model {
 
     public function __unset($n) {
         unset($this->__members[$n]);
+    }
+
+    public function dump() {
+        # for debugging
+        # use in templates like:
+        #   {$m->dump()|@d} (preferred)
+        # or
+        #   <pre>{$m->dump()|@printr}</pre>
+        $r = array();
+        foreach ($this->__members as $f=>$v) {
+            if (is_object($v)) {
+                $PK = _model_data::$primary_key[get_class($v)];
+                $x = sprintf('%s(%d)', get_class($v), $v->$PK);
+            } elseif (is_array($v)) {
+                $x = array();
+            } else {
+                $x = $v;
+            }
+            $r[$f] = $x;
+        }
+        return $r;
     }
 
     public function commit() {
