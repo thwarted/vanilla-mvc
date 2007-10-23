@@ -111,6 +111,10 @@ class smarty_extensions {
             #$v = "$open $attrname=\"$attrvalue\" $rest";
     }
 
+    public function modifier_count($v) {
+        return count($v);
+    }
+
     public function modifier_d($v) {
         # record the value as debugging info to appear in the messages box
         d($v);
