@@ -3,6 +3,15 @@
 class _object_cache {
     static $cache = array();
 
+    public static function singleton($class, $id, $o) {
+        if ($x = _object_cache::get($class, $id)) {
+            return $x;
+        } else {
+            _object_cache::store($class, $id, $o);
+            return $o;
+        }
+    }
+
     public static function store($class, $pkvalue, $o) {
         lib::el(sprintf('objcache assigning %s(%d)', $class, $pkvalue));
         self::$cache[$class][$pkvalue] = $o;
@@ -384,12 +393,14 @@ class base_model {
         $r = array();
         $class = get_class($this);
         while($o = $sth->fetchrow_object($class)) {
+            /*
             if ($x = _object_cache::get($class, $o->$PK)) {
                 $o = $x;
             } else {
                 _object_cache::store($class, $o->$PK, $o);
             }
-            $r[] = $o;
+            */
+            $r[] = _object_cache::singleton($class, $o->$PK, $o);
         }
         return $r;
     }
