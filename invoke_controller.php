@@ -35,7 +35,7 @@ function invoke_controller($request) {
 
 function invoke_form_handler() {
     foreach ($_POST as $k=>$a) {
-        if (is_array($a) && strpos($k, '-') === false) {
+        if (is_array($a) && strpos($k, '-') !== false) {
             # - is illegal in function names in PHP, so safe to use as a separator here
             list($model, $formid) = explode('-', $k);
             if ($formid) {
