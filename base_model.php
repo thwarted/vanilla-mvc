@@ -33,11 +33,18 @@ class _object_cache {
         #foreach (self::$cache as $c=>$a) { foreach ($a as $p=>$o) { print "$c = $p\n"; } }
     }
 
-    public static function forget($class, $pk) {
-        unset(self::$cache[$class][$pk]);
+    public static function forget($class, $pk=NULL) {
+        if (isset($pk)) {
+            lib::el("forgetting all cached $class $pk objects");
+            unset(self::$cache[$class][$pk]);
+        } else {
+            lib::el("forgetting all cached $class objects");
+            self::$cache[$class] = array();
+        }
     }
 
     public static function xflush() {
+        lib::el("flushing all cached objects");
         self::$cache = array();
     }
 }
@@ -445,6 +452,8 @@ if ($__x = opendir("./models")) {
 # PHP's meaning of 'self' in side class static methods is
 # totally fucking screwed.
 function model($n) {
+    # FIXME this could be done on-demand and by using a static
+    # rather than globals
     static $prefix;
 
     # the prefix is to avoid other code from accidentially 
