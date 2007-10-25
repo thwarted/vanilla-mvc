@@ -42,6 +42,36 @@ class HTTPException extends Exception {
     }
 }
 
+class HTTPMovedPermanently extends HTTPException {
+    public function __construct($loc) {
+        parent::__construct("found", 301, absolute($loc));
+    }
+}
+
+class HTTPFoundRedirect extends HTTPException {
+    public function __construct($loc) {
+        parent::__construct("found", 302, absolute($loc));
+    }
+}
+
+class HTTPSeeOther extends HTTPException {
+    public function __construct($loc) {
+        parent::__construct("see other", 303, absolute($loc));
+    }
+}
+
+class HTTPUnauthorized extends HTTPException {
+    public function __construct($extramsg = '') {
+        parent::__construct('Unauthorized', 401);
+    }
+}
+
+class HTTPForbidden extends HTTPException {
+    public function __construct($extramsg = '') {
+        parent::__construct('Forbidden', 403);
+    }
+}
+
 class HTTPNotFound extends HTTPException {
     public function __construct($extramsg = '') {
         $x = $_SERVER['REQUEST_URI'];
@@ -53,9 +83,4 @@ class HTTPNotFound extends HTTPException {
     }
 }
 
-class HTTPUnauthorized extends HTTPException {
-    public function __construct($extramsg = '') {
-        parent::__construct('Unauthorized', 401);
-    }
-}
 
