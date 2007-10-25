@@ -19,6 +19,7 @@ class smarty_extensions {
             return;
         }
         require_once "models/$model.php";
+        # FIXME needs to be converted to use the model('x')->find syntax
         if (!class_exists($model)) {
             $smarty->trigger_error("find: 'model' $model missing class");
             #throw new HTTPNotFound("model $model class not found");
