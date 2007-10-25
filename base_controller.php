@@ -57,7 +57,7 @@ abstract class base_controller {
             if (preg_match('/^(\w+)=(.*)$/', $v, $m)) {
                 $_REQUEST[$m[1]] = urldecode($m[2]);
             } else {
-                $r[] = urldecode($v);
+                $r[] = trim(urldecode($v));
             }
         }
         # all protected and public methods are accessible
@@ -93,7 +93,7 @@ abstract class base_controller {
         header("X-JSON: ".$valstr);
     }
 
-    private function __get_metadata($f) {
+    private function _get_metadata($f) {
         $metadata = array();
         $fh = fopen($f, 'r');
         if (!$fh) {
@@ -116,7 +116,7 @@ abstract class base_controller {
 
     # should this be moved to a view object? we're using smarty
     # which is the "view object", which is difficult to override
-    private function __find_related_content($ext) {
+    private function _find_related_content($ext) {
         $vn = preg_replace('/\..+$/', '', $this->viewname);
         $b = basename($vn, ".$ext");
         $r = array();
@@ -125,12 +125,12 @@ abstract class base_controller {
                 $g = "$p/*$ext";
                 $files = glob($g);
                 foreach ($files as $f) {
-                    $ri = $this->__build_media_info($f);
+                    $ri = $this->_build_media_info($f);
                     $r[$f] = $ri;
                 }
             }
         }
-        foreach ($this->__related_content_searchpaths() as $p) {
+        foreach ($this->_related_content_searchpaths() as $p) {
             # order, and thus priority, of individual CSS files is undefined
             # rules should not overlap though
             # FIXME ideally, we'd want $b*$ext to appear AFTER the rest
@@ -142,7 +142,7 @@ abstract class base_controller {
                 $files = glob($g);
                 foreach ($files as $f) {
                     if (!isset($r[$f])) {
-                        $ri = $this->__build_media_info($f);
+                        $ri = $this->_build_media_info($f);
                         $r[$f] = $ri;
                     }
                 }
@@ -151,8 +151,8 @@ abstract class base_controller {
         return $r;
     }
     
-    private function __build_media_info($file) {
-        $ri = $this->__get_metadata($file);
+    private function _build_media_info($file) {
+        $ri = $this->_get_metadata($file);
         # if it's in the apache served static files directory...
         if (preg_match('/^media/', $file)) {
             # ...provide a URL directly to it
@@ -165,7 +165,7 @@ abstract class base_controller {
         return $ri;
     }
 
-    private function __related_content_searchpaths() {
+    private function _related_content_searchpaths() {
         $x = array();
         # the order here determines the order in which they are included
         # so more specific media files should be stored in the same
@@ -190,8 +190,8 @@ abstract class base_controller {
             throw new HTTPNotFound("view \"".$viewfile."\" not found");
         }
 
-        $this->stylesheets = array_merge($this->stylesheets, $this->__find_related_content('.css'));
-        $this->javascripts = array_merge($this->javascripts, $this->__find_related_content('.js'));
+        $this->stylesheets = array_merge($this->stylesheets, $this->_find_related_content('.css'));
+        $this->javascripts = array_merge($this->javascripts, $this->_find_related_content('.js'));
 
         $this->view->assign('stylesheets', $this->stylesheets);
         $this->view->assign('javascripts', $this->javascripts);
