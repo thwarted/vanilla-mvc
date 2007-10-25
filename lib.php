@@ -246,6 +246,19 @@ function url() {
     return $o;
 }
 
+function absolute($u) {
+    if (!$u) { return $u; }
+    if (preg_match('@^https?://@', $u)) {
+        return $u;
+    }
+    if (!preg_match('@^/@', $u)) {
+        $u = "/$u";
+    }
+    $secure = isset($_SERVER['HTTPS']) ? 's' : ''; # FIXME verify this CGI var
+    $u = sprintf('http%s://%s%s', $secure, $_SERVER['SERVER_NAME'], $u);
+    return $u;
+}
+
 function array_values_recursive($array) {
    $flat = array();
    foreach ($array as $value) {
