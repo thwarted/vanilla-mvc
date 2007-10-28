@@ -1,86 +1,6 @@
 <?php
 
-class _object_cache {
-    static $cache = array();
-
-    public static function singleton($class, $id, $o) {
-        if ($x = _object_cache::get($class, $id)) {
-            return $x;
-        } else {
-            _object_cache::store($class, $id, $o);
-            return $o;
-        }
-    }
-
-    public static function store($class, $pkvalue, $o) {
-        lib::el(sprintf('objcache assigning %s(%d)', $class, $pkvalue));
-        self::$cache[$class][$pkvalue] = $o;
-    }
-
-    public static function get($class, $pkvalue) {
-        if ( isset(self::$cache[$class][$pkvalue]) && is_object(self::$cache[$class][$pkvalue]) ) {
-            lib::el(sprintf('objcache     using %s(%d)', $class, $pkvalue));
-            return self::$cache[$class][$pkvalue];
-        }
-        #lib::el(sprintf('objcache getfailed %s(%d)', $class, $pkvalue));
-        return NULL;
-    }
-
-    public static function dump($pre='') {
-        print "$pre<pre>";
-        print_r(self::$cache);
-        print "</pre><hr/>";
-        #foreach (self::$cache as $c=>$a) { foreach ($a as $p=>$o) { print "$c = $p\n"; } }
-    }
-
-    public static function forget($class, $pk=NULL) {
-        if (isset($pk)) {
-            lib::el("forgetting all cached $class $pk objects");
-            unset(self::$cache[$class][$pk]);
-        } else {
-            lib::el("forgetting all cached $class objects");
-            self::$cache[$class] = array();
-        }
-    }
-
-    public static function xflush() {
-        lib::el("flushing all cached objects");
-        self::$cache = array();
-    }
-}
-
-class _model_data {
-    static public $table = array();
-    static public $primary_key = array();
-    static public $primary_key_is_foreign = array();
-    static public $has_one = array();
-    static public $has_collection = array();
-    static public $belongs_to = array();
-    static public $references = array();
-}
-
-class empty_model { 
-    public function __call($m, $a) {
-        return NULL;
-    }
-
-    public function __get($n) {
-        return NULL;
-    }
-
-    public function __set($n, $v) {
-        return;
-    }
-
-    public function __isset($n) {
-        return false;
-    }
-
-    public function __unset($n) {
-        return;
-    }
-}
-
+require_once "vanilla/modellib.php";
 
 class base_model {
     protected $__members = array();
@@ -91,7 +11,6 @@ class base_model {
         _model_data::$primary_key[get_class($this)] = 'id';
         _model_data::$primary_key_is_foreign[get_class($this)] = false;
         _model_data::$has_one[get_class($this)] = array();
-        _model_data::$has_collection[get_class($this)] = array();
     }
 
     public function primary_key($pk, $isforeign=false) {
@@ -99,48 +18,47 @@ class base_model {
         _model_data::$primary_key_is_foreign[get_class($this)] = $isforeign;
     }
 
-    # FIXME FIXME FIXME
-    # do these comments really/accurately reflect the intent of these declarations?
     public function has_one($model_name, $bycol = NULL) {
+        # family::has_one(house) => house.family_id references family.id
+        # family->house is created
+
         # model_name.bycol points to this
         # accessible via this->model_name
         # this->model_name->bycol should point to this
         if (!isset($bycol)) {
-            $bycol = sprintf('%s_id', $model_name);
+            $bycol = sprintf('%s_id', get_class($this));
         }
         _model_data::$has_one[get_class($this)][$model_name] = $bycol;
     }
     
-    public function has_collection($model_name, $bycol = NULL) {
+    public function belongs_to($model_name, $bycol = NULL, $thisfieldname=NULL) {
+        # house::belongs_to(family) => house.family_id references family.id
+        # house->family is created
+
+        # this.bycol points to model_name (the inverse relationship of has_one and has_many)
+        # accessible via this->model_name
+        # this->bycol is updatable
+        if (!isset($bycol)) {
+            $bycol = sprintf('%s_id', $model_name);
+        }
+        if (!isset($thisfieldname)) {
+            $thisfieldname = preg_replace('/_id$/', '', $bycol);
+        }
+        _model_data::$belongs_to[get_class($this)][$thisfieldname] = array($model_name, $bycol);
+    }
+
+    public function has_many($model_name, $bycol=NULL) {
+        # family::has_many(child) => child.family_id references family.id
+        # family->child = array(of child)
+
         # more than one model_name.bycol points to this
         # accessible via this->model_name as an array
         # this->model_name[...]->bycol should point to this
         if (!isset($bycol)) {
             $bycol = sprintf('%s_id', $model_name);
         }
-        _model_data::$has_collection[get_class($this)][$model_name] = $bycol;
+        _model_data::$has_many[get_class($this)][$model_name] = $bycol;
     }
-
-    public function belongs_to($model_name, $bycol = NULL) {
-        # this.bycol points to model_name (the inverse relationship of has_one and has_collection)
-        # accessible via this->model_name
-        # this->bycol is updatable
-        if (!isset($bycol)) {
-            $bycol = sprintf('%s_id', $model_name);
-        }
-        _model_data::$belongs_to[get_class($this)][$model_name] = $bycol;
-    }
-
-    public function references($model_name, $bycol = NULL) {
-        # this.bycol points to model_name
-        # accessible via this->model_name
-        # this->bycol is updatable
-        if (!isset($bycol)) {
-            $bycol = sprintf('%s_id', $model_name);
-        }
-        _model_data::$references[get_class($this)][$model_name] = $bycol;
-    }
-    # FIXME not quite sure anymore what the difference is between ::belongs_to and ::references
 
     public function __construct($a=array()) {
         $this->__members = array();
@@ -151,6 +69,10 @@ class base_model {
     }
 
     public function __set($n, $v) {
+        $m = "__set_$n";
+        if (is_callable(array($this, $m))) {
+            return $this->$m($v);
+        }
         if (!array_key_exists($n, $this->__original_values) 
                 && !in_array($n, _model_data::$has_one[get_class($this)])) {
             $this->__original_values[$n] = $v;
@@ -158,65 +80,71 @@ class base_model {
         $this->__members[$n] = $v;
     }
 
-    private function __get_one($n) {
+    private function ___get_one($n) {
         if (!isset($this->__members[$n])) {
-            #lib::el("demand loading single $n");
+            #lib::el("demand loading one $n for ".get_class($this));
             $PK = _model_data::$primary_key[get_class($this)];
-            $fsk = _model_data::$has_one[get_class($this)][$n];
-            $this->__members[$n] = model($n)->find_first(array($fsk=>$this->$PK));
-        }
-    }
+            $me = $this->$PK;
 
-    private function __get_collection($n) {
-        if (!isset($this->__members[$n])) {
-            #lib::el("demand loading collection $n");
-            $PK = _model_data::$primary_key[get_class($this)];
-            $fsk = _model_data::$has_collection[get_class($this)][$n];
-            $this->__members[$n] = model($n)->find(array($fsk=>$this->$PK));
-        }
-    }
-
-    private function __get_belongs_to($n) {
-        if (!isset($this->__members[$n])) {
-            lib::el("demand loading belongs to $n");
-            $fsk = _model_data::$belongs_to[get_class($this)][$n];
-            if (isset($this->$fsk)) {
-                $this->__members[$n] = model($n)->find_first($this->$fsk);
-            }
-        }
-    }
-
-    private function __get_references($n) {
-        if (!isset($this->__members[$n])) {
-            lib::el("demand loading referenced $n");
-            $fsk = _model_data::$references[get_class($this)][$n];
-            if (isset($this->$fsk)) {
-                $this->__members[$n] = model($n)->find_first($this->$fsk);
-            }
-        }
-    }
-
-    public function __get($n) {
-        if (isset(_model_data::$has_one[get_class($this)][$n])) {
-            $this->__get_one($n);
-        }
-        if (isset(_model_data::$has_collection[get_class($this)][$n])) {
-            $this->__get_collection($n);
-        }
-        if (isset(_model_data::$belongs_to[get_class($this)][$n])) {
-            $this->__get_belongs_to($n);
-        }
-        if (isset(_model_data::$references[get_class($this)][$n])) {
-            $this->__get_references($n);
+            $fk = _model_data::$has_one[get_class($this)][$n];
+            $this->__members[$n] = model($n)->find_first( array($fk=>$me) );
         }
         return $this->__members[$n];
     }
 
+    private function ___get_belongs_to($n) {
+        if (!isset($this->__members[$n])) {
+            #lib::el("demand loading belongs to $n for ".get_class($this));
+            list($model_name, $fsk) = _model_data::$belongs_to[get_class($this)][$n];
+            if (isset($this->$fsk)) {
+                $this->__members[$n] = model($model_name)->find_first($this->$fsk);
+            }
+        }
+        return $this->__members[$n];
+    }
+
+    private function ___get_many($n) {
+        if (!isset($this->__members[$n])) {
+            #lib::el("demand loading many $n for ".get_class($this));
+            $PK = _model_data::$primary_key[get_class($this)];
+            $me = $this->$PK;
+
+            $fk = _model_data::$has_many[get_class($this)][$n];
+            $this->__members[$n] = model($n)->find( array($fk=>$me) );
+        }
+        return $this->__members[$n];
+    }
+
+    public function __get($n) {
+        $m = "__get_$n";
+        if (is_callable(array($this, $m))) {
+            return $this->$m($n);
+        }
+        if (isset(_model_data::$has_one[get_class($this)][$n])) {
+            return $this->___get_one($n);
+        }
+        if (isset(_model_data::$belongs_to[get_class($this)][$n])) {
+            return $this->___get_belongs_to($n);
+        }
+        if (isset(_model_data::$has_many[get_class($this)][$n])) {
+            return $this->___get_many($n);
+        }
+        return isset($this->__members[$n]) ? $this->__members[$n] : NULL;
+    }
+
     public function __isset($n) {
+        $m = "__isset_$n";
+        if (is_callable(array($this, $m))) {
+            return $this->$m($n);
+        }
         return isset($this->__members[$n]);
     }
 
     public function __unset($n) {
+        $m = "__unset_$n";
+        if (is_callable(array($this, $m))) {
+            return $this->$m($n);
+        }
         unset($this->__members[$n]);
     }
 
@@ -275,7 +203,7 @@ class base_model {
         foreach ($this->__original_values as $n=>$ov) {
             #lib::el(array(get_class($this), $n, $ov, $this->$n));
             if (isset(_model_data::$has_one[get_class($this)][$n])
-             || isset(_model_data::$has_collection[get_class($this)][$n])) {
+             || isset(_model_data::$has_many[get_class($this)][$n])) {
                 # don't recursive update models/sub-objects
                 # developer must manually invoke update on those
                 next;
@@ -308,7 +236,7 @@ class base_model {
         $s = array();
         foreach ($this->__original_values as $n=>$c) {
             if (isset(_model_data::$has_one[get_class($this)][$n])
-             || isset(_model_data::$has_collection[get_class($this)][$n])) {
+             || isset(_model_data::$has_many[get_class($this)][$n])) {
                 # don't recursive update models/sub-objects
                 # developer must manually invoke update on those
                 next;
@@ -346,7 +274,7 @@ class base_model {
             $sth->execute($this->$PK);
             $this->__original_values = array();
             $this->__members = array();
-            # FIXME iterate over has_one and has_collection and force updates on them too
+            # FIXME iterate over has_one and has_many and force updates on them too
             $sth->fetchrow_object($this);
         }
     }
@@ -359,6 +287,10 @@ class base_model {
             if (is_int($lastarg)) {
                 $limit = $lastarg;
             }
+        }
+
+        if (empty($cond)) {
+            return array();
         }
 
         $PK = _model_data::$primary_key[get_class($this)];
@@ -415,7 +347,11 @@ class base_model {
     public function find_first($cond, $where=NULL) {
         $x = $this->find($cond, $where, 1);
         if (count($x)) {
-            return $x[0];
+            # return first element independent of the key
+            # without modifying the array (like array_shift would)
+            reset($x);
+            list($k, $v) = each($x);
+            return $v;
         }
         return NULL;
     }
