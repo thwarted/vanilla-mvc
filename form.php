@@ -605,7 +605,7 @@ class form implements Countable, ArrayAccess, Iterator {
             $value->origin_form($this);
             $fieldname = $value->name();
             if (is_array($this->_data)) { # if the form was actually submitted
-                $value->submitted_value(isset($this->_data[$fieldname]) ? $this->_data[$fieldname] : NULL);
+                $value->submitted_value(isset($this->_data[$fieldname]) ? trim($this->_data[$fieldname]) : NULL);
             }
             $this->_fields[$fieldname] = $value;
         }
