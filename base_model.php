@@ -7,15 +7,52 @@ class base_model {
     protected $__original_values = array();
 
     public function table($t) {
-        _model_data::$table[get_class($this)] = $t;
-        _model_data::$primary_key[get_class($this)] = 'id';
-        _model_data::$primary_key_is_foreign[get_class($this)] = false;
-        _model_data::$has_one[get_class($this)] = array();
+        $c = get_class($this);
+        _model_data::$table[$c] = $t;
+        _model_data::$primary_key[$c] = 'id';
+        _model_data::$primary_key_is_foreign[$c] = false;
+        _model_data::$has_one[$c] = array();
+        _model_data::$virtual_fields[$c] = array();
     }
 
     public function primary_key($pk, $isforeign=false) {
         _model_data::$primary_key[get_class($this)] = $pk;
         _model_data::$primary_key_is_foreign[get_class($this)] = $isforeign;
+    }
+
+    private function _get_field_list() {
+        $c = get_class($this);
+        if (!isset(_model_data::$fieldlist[$c])) {
+            $fl = '*';
+            /*
+            global $dbh;
+            $table = _model_data::$table[get_class($this)];
+            # FIXME use DBI quoting here
+            $sth = $dbh->prepare($x= "describe $table");
+            d($x);
+            $sth->execute();
+            $cols = array();
+            while($x = $sth->fetchrow_hashref()) {
+                $cols[$x['Field']] = $x['Type'];
+            }
+            d($cols, $table);
+            */
+            $vf = array();
+            global $dbh;
+            foreach (_model_data::$virtual_fields[$c] as $n=>$expr) {
+                $vf[] = "$expr as ".$dbh->quote_label($n);
+            }
+            if (count($vf)) {
+                $fl .= ", ". join(', ', $vf);
+            }
+
+            _model_data::$fieldlist[$c] = $fl;
+        }
+        return _model_data::$fieldlist[$c];
+    }
+
+    public function virtual_field($name, $expr) {
+        _model_data::$virtual_fields[get_class($this)][$name] = $expr;
     }
 
     public function has_one($model_name, $bycol = NULL) {
@@ -200,32 +237,31 @@ class base_model {
     }
 
     private function _commit_update() {
-        # FIXME use dbi identifer quoting
-        $q = "update "._model_data::$table[get_class($this)]." set ";
+        global $dbh;
+        $q = "update ".$dbh->quote_label(_model_data::$table[get_class($this)])." set ";
         $f = array();
         $s = array();
+        $c = get_class($this);
         foreach ($this->__original_values as $n=>$ov) {
             #lib::el(array(get_class($this), $n, $ov, $this->$n));
-            if (isset(_model_data::$has_one[get_class($this)][$n])
-             || isset(_model_data::$has_many[get_class($this)][$n])) {
+            if (isset(_model_data::$has_one[$c][$n])
+             || isset(_model_data::$has_many[$c][$n])
+             || isset(_model_data::$virtual_fields[$c][$n])) {
                 # don't recursive update models/sub-objects
                 # developer must manually invoke update on those
                 next;
             }
             if ( ! ($this->$n === $ov) ) {
-                # FIXME use dbi identifer quoting
-                $f[] = sprintf('`%s` = ?', $n);
+                $f[] = $dbh->quote_label($n)." = ?";
                 $s[] = $this->$n;
             }
         }
         if (count($s)) { # else nothing to update, nothing changed
             $q .= join(', ', $f);
             $PK = _model_data::$primary_key[get_class($this)];
-            # FIXME use dbi identifer quoting
-            $q .= " where $PK = ?";
+            $q .= " where ".($dbh->quote_label($PK))." = ?";
             $s[] = $this->$PK;
 
-            global $dbh;
             d($q);
             d($s);
             $sth = $dbh->prepare($q);
@@ -248,12 +284,12 @@ class base_model {
             $f[] = $n;
             $s[] = $this->$n;
         }
-        # FIXME use dbi identifer quoting
+        global $dbh;
         $x = join(', ', array_fill(0, count($f), '?'));
-        $q = "insert into "._model_data::$table[get_class($this)]
+        $q = "insert into ".$dbh->quote_label(_model_data::$table[get_class($this)])
+                # FIXME use dbi identifer quoting on elements of $f
                 ." (".join(', ', $f).") values (".$x.")";
 
-        global $dbh;
         d($q);
         d($s);
         $sth = $dbh->prepare($q);
@@ -272,8 +308,8 @@ class base_model {
 
         $PK = _model_data::$primary_key[get_class($this)];
         if (isset($this->$PK) && $this->$PK) {
-            # FIXME use DBI identifer quoting
-            $q = "select * from "._model_data::$table[get_class($this)]." where $PK = ? limit 1";
+            $fl = $this->_get_field_list();
+            $q = "select $fl from ".$dbh->quote_label(_model_data::$table[get_class($this)])." where ".($dbh->quote_label($PK))." = ? limit 1";
             $sth = $dbh->prepare($q);
             $sth->execute($this->$PK);
             $this->__original_values = array();
@@ -284,6 +320,7 @@ class base_model {
     }
 
     public function find( /* cond, ?where, ?limit*/ ) {
+        global $dbh;
         $args = func_get_args();
         $cond = array_shift($args);
         if (count($args)) {
@@ -305,8 +342,7 @@ class base_model {
             $a = array();
             $where = array();
             foreach ($cond as $f=>$v) {
-                # FIXME use DBI identifer quoting
-                $where[] = sprintf('`%s` = ?', $f);
+                $where[] = $dbh->quote_label($f).' = ?';
                 $a[] = $v;
             }
             $where = join(' and ', $where);
@@ -325,9 +361,8 @@ class base_model {
             throw new Exception("illegal type for conditions to ".get_class($this)."::find");
         }
 
-        global $dbh;
-        # FIXME use DBI identifer quoting
-        $q = "select * from "._model_data::$table[get_class($this)]." where ".$where;
+        $fields = $this->_get_field_list();
+        $q = "select $fields from "._model_data::$table[get_class($this)]." where ".$where;
         if (isset($limit)) {
             $q .= " limit $limit";
         }
@@ -336,13 +371,6 @@ class base_model {
         $r = array();
         $class = get_class($this);
         while($o = $sth->fetchrow_object($class)) {
-            /*
-            if ($x = _object_cache::get($class, $o->$PK)) {
-                $o = $x;
-            } else {
-                _object_cache::store($class, $o->$PK, $o);
-            }
-            */
             $r[] = _object_cache::singleton($class, $o->$PK, $o);
         }
         return $r;

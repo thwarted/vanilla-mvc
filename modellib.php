@@ -110,6 +110,8 @@ class _model_data {
     # family->child is created as an array()
     static public $has_many = array();
 
-    static public $has_collection = array();
+    static public $virtual_fields = array();
+
+    static public $fieldlist = array();
 }
 
