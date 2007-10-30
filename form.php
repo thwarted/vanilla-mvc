@@ -87,7 +87,7 @@ class formfield {
 
     public function value($submitted_value = NULL) {
         if (isset($submitted_value)) {
-            $this->_value = $submitted_value;
+            $this->_value = trim($submitted_value);
         }
         if (!isset($this->_value)) {
             return $this->_defaultvalue;
@@ -106,7 +106,7 @@ class formfield {
 
     public function default_value($newdefault = NULL) {
         if (isset($newdefault)) {
-            $this->_defaultvalue = $newdefault;
+            $this->_defaultvalue = trim($newdefault);
         }
         return $this->_defaultvalue;
     }
@@ -403,12 +403,12 @@ class form_input_radio_series extends formfield {
         $id = $this->id();
         $value = $this->value();
         $elmname = $this->mkname();
-        foreach ($this->__options as $v=>$l) {
+        foreach ($this->__options as $optval=>$label) {
             $c++;
             $iid = $id."_".$c;
-            $checked = ($value == $v ? 'checked="checked"' : '');
+            $checked = ($value == $optval ? 'checked="checked"' : '');
             $i = sprintf('<input type="radio" name="%s" id="%s" value="%s" %s /><label for="%s">%s</label>', 
-                                $elmname, $iid, $v, $checked, $iid, $l);
+                                $elmname, $iid, $optval, $checked, $iid, $label);
             $items[] = "   <li>$i</li>\n";
         }
         $r = "<ul style=\"margin-left: -30px; list-style: none;\" id=\"$id\">\n";
@@ -427,18 +427,65 @@ class form_select_series extends form_input_radio_series {
         $c = 0;
         $id = $this->id();
         $value = $this->value();
-        foreach ($this->__options as $v=>$l) {
+        foreach ($this->__options as $optval=>$label) {
             $c++;
             $iid = $id."_".$c;
-            $checked = ($value == $v ? 'selected="selected"' : '');
+            $checked = ($value == $optval ? 'selected="selected"' : '');
             $i = sprintf('<option id="%s" value="%s" %s >%s</option>', 
-                                $iid, $v, $checked, $l);
+                                $iid, $optval, $checked, $label);
             $items[] = "   $i\n";
         }
         $r = "<select name=\"".$this->mkname()."\" id=\"$id\">\n";
         $r .= join('', $items);
         $r .= "\n</select>\n";
         return $r;
+    }
+}
+
+class form_fileupload extends formfield {
+    private $_max_file_size;
+
+    public function html() {
+        $r = sprintf('<input type="hidden" name="MAX_FILE_SIZE" value="%d" />', $this->_max_file_size);
+        $id = $this->id();
+        $r .= "<input type=\"file\" name=\"".$this->mkname()."\" id=\"$id\" />";
+        return $r;
+    }
+
+    public function max_file_size($s) {
+        $this->_max_file_size = intval($s);
+        return $this;
+    }
+
+    public function value($submitted_value = NULL) {
+        if (isset($submitted_value) && is_array($submitted_value)) {
+            $this->_value = $submitted_value;
+        }
+        if (!isset($this->_value)) {
+            return array();
+        }
+        return $this->_value;
+    }
+
+    public function verify() {
+        if (is_bool($this->_valid)) {
+            # we've already run the verifier, don't do it again
+            return $this->_valid;
+        }
+        if ($this->_required) {
+            if (isset($this->_value) && empty($this->_value)) {
+                $this->_valid = false;
+                $this->_errormsg = 'required';
+            }
+        } else {
+            if (empty($this->_value)) {
+                $this->_valid = true;
+            }
+        }
+        if (!isset($this->_valid)) {
+            $this->_valid = true;
+        }
+        return $this->_valid;
     }
 }
 
@@ -487,6 +534,7 @@ class form implements Countable, ArrayAccess, Iterator {
 
     }
 
+    # takes new name, returns old name
     public function name($newname=NULL) {
         $r = $this->_name;
         if (isset($newname)) {
@@ -515,7 +563,7 @@ class form implements Countable, ArrayAccess, Iterator {
     }
 
     public function method($m) {
-        if (preg_match('/^get|post$/i', $m)) {
+        if (preg_match('/^(get|post)$/i', $m)) {
             $this->_submit_method = strtolower($m);
         } else {
             throw new Exception("$m is not an acceptable form submission method for form ".$this->name);
@@ -561,8 +609,20 @@ class form implements Countable, ArrayAccess, Iterator {
         return $this->_processed;
     }
 
+    private function has_fileupload() {
+        foreach ($this as $k=>$ff) {
+            if ($ff instanceof form_fileupload) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function start() {
         $r = '<form id="'.$this->_name.'" method="'.$this->_submit_method.'"';
+        if ($this->has_fileupload()) {
+            $r .= ' enctype="multipart/form-data"';
+        }
         if ($this->_submit_action) {
             $r .= ' action="'.$this->_submit_action.'"';
         }
@@ -605,7 +665,17 @@ class form implements Countable, ArrayAccess, Iterator {
             $value->origin_form($this);
             $fieldname = $value->name();
             if (is_array($this->_data)) { # if the form was actually submitted
-                $value->submitted_value(isset($this->_data[$fieldname]) ? trim($this->_data[$fieldname]) : NULL);
+                if ($value instanceof form_fileupload) {
+                    $fn = $this->name();
+                    $a = array('name'=>$_FILES[$fn]['name'][$fieldname],
+                               'type'=>$_FILES[$fn]['type'][$fieldname],
+                               'tmp_name'=>$_FILES[$fn]['tmp_name'][$fieldname],
+                               'error'=>$_FILES[$fn]['error'][$fieldname],
+                               'size'=>$_FILES[$fn]['size'][$fieldname]
+                              );
+                    $this->_data[$fieldname] = $a;
+                }
+                $value->submitted_value(isset($this->_data[$fieldname]) ? $this->_data[$fieldname] : NULL);
             }
             $this->_fields[$fieldname] = $value;
         }
@@ -624,4 +694,3 @@ class form implements Countable, ArrayAccess, Iterator {
 
 }
 
-?>
