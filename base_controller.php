@@ -6,6 +6,7 @@ abstract class base_controller {
     protected $viewname;
     protected $view;
     protected $autoRender;
+    protected $extraargs = array();
     protected $stylesheets = array();
     protected $javascripts = array();
     // if allowed_methods is true, ::_invoke will allow
@@ -55,7 +56,7 @@ abstract class base_controller {
         $r = array();
         foreach ($req as $v) {
             if (preg_match('/^(\w+)=(.*)$/', $v, $m)) {
-                $_REQUEST[$m[1]] = urldecode($m[2]);
+                $this->extraargs[$m[1]] = urldecode($m[2]);
             } else {
                 $r[] = trim(urldecode($v));
             }
