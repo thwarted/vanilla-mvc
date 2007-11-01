@@ -7,8 +7,6 @@ abstract class base_controller {
     protected $view;
     protected $autoRender;
     protected $extraargs = array();
-    protected $stylesheets = array();
-    protected $javascripts = array();
     // if allowed_methods is true, ::_invoke will allow
     // any method to be called 
     // set to an array of allowed method names otherwise
@@ -72,25 +70,9 @@ abstract class base_controller {
         return true;
     }
 
-/*
-    protected function plink() {
-        global $baseURI;
-
-        $x = $baseURI;
-
-        $args = func_get_args();
-        if (!count($args)) $args[] = '';
-        foreach ($args as $a) {
-            $x .= "/".urlencode($a);
-        }
-        return $x;
-    }
-*/
-
     protected function _json_result($val) {
         /* should convert to use the PHP json_encode function here */
-        $j = new JSON();
-        $valstr = $j->encode($val);
+        $valstr = json_encode($val);
         header("X-JSON: ".$valstr);
     }
 
@@ -112,68 +94,12 @@ abstract class base_controller {
             $maxlines--;
         }
         fclose($fh);
+        if (preg_match('/\.css$/', $f)) {
+            if (!isset($metadata['relation'])) {
+                $metadata['relation'] = 'stylesheet';
+            }
+        }
         return $metadata;
-    }
-
-    # should this be moved to a view object? we're using smarty
-    # which is the "view object", which is difficult to override
-    private function _find_related_content($ext) {
-        $vn = preg_replace('/\..+$/', '', $this->viewname);
-        $b = basename($vn, ".$ext");
-        $r = array();
-        if (is_array($_SERVER['all_views_media_paths'])) {
-            foreach ($_SERVER['all_views_media_paths'] as $p) {
-                $g = "$p/*$ext";
-                $files = glob($g);
-                foreach ($files as $f) {
-                    $ri = $this->_build_media_info($f);
-                    $r[$f] = $ri;
-                }
-            }
-        }
-        foreach ($this->_related_content_searchpaths() as $p) {
-            # order, and thus priority, of individual CSS files is undefined
-            # rules should not overlap though
-            # FIXME ideally, we'd want $b*$ext to appear AFTER the rest
-            # since they would presumablly contain definitions we want to override
-            # in the general cases
-            # need a custom sort function for that, methinks.  Leaving it with the
-            # loop for now to keep it obvious how things could work
-            foreach (array("$p/$b*$ext", "$p/*$ext") as $g) {
-                $files = glob($g);
-                foreach ($files as $f) {
-                    if (!isset($r[$f])) {
-                        $ri = $this->_build_media_info($f);
-                        $r[$f] = $ri;
-                    }
-                }
-            }
-        }
-        return $r;
-    }
-    
-    private function _build_media_info($file) {
-        $ri = $this->_get_metadata($file);
-        # if it's in the apache served static files directory...
-        if (preg_match('/^media/', $file)) {
-            # ...provide a URL directly to it
-            $ri['url'] = url($file);
-        } else {
-            # ...otherwise serve it through the built-in dynamic
-            # media controller
-            $ri['url'] = url('_media', $file);
-        }
-        return $ri;
-    }
-
-    private function _related_content_searchpaths() {
-        $x = array();
-        # the order here determines the order in which they are included
-        # so more specific media files should be stored in the same
-        # directory as the view
-        $x[] = 'media/'.dirname($this->viewname);
-        $x[] = $this->view->template_dir.'/'.dirname($this->viewname);
-        return $x;
     }
 
     public function _render() {
@@ -190,14 +116,6 @@ abstract class base_controller {
         if (!file_exists($this->view->template_dir."/".$viewfile)) {
             throw new HTTPNotFound("view \"".$viewfile."\" not found");
         }
-
-        $this->stylesheets = array_merge($this->stylesheets, $this->_find_related_content('.css'));
-        $this->javascripts = array_merge($this->javascripts, $this->_find_related_content('.js'));
-
-        $this->view->assign('stylesheets', $this->stylesheets);
-        $this->view->assign('javascripts', $this->javascripts);
-
-        $this->view->assign('link', $_SERVER['link']);
 
         if ($this->autoRender) {
             $this->view->display($viewfile);
