@@ -1,6 +1,6 @@
 <?php
 
-$_SERVER['show_traceback_in_browser'] = false;
+$_SERVER['show_traceback_in_browser'] = true;
 
 require_once "vanilla/smarty/Smarty.class.php";
 require_once "vanilla/smarty_extensions.php";
@@ -84,7 +84,12 @@ class lib {
     }
 
     static public function el($v) {
-        error_log(preg_replace('/\n/', '', var_export($v, true)));
+        static $first = true;
+        if ($first) {
+            error_log($_SERVER['starttime'].":------------------------------------------------------");
+            $first = false;
+        }
+        error_log($_SERVER['starttime'].":".preg_replace('/\n/', '', var_export($v, true)));
     }
 
     static public function qd($v) {
@@ -182,7 +187,8 @@ class lib {
         }
         $msg = preg_replace("/\n/", "<br/>", $msg);
         print "<h2>".get_class($e)." (code $code)</h2><tt>$msg</tt>\n";
-        if ($_SERVER['show_traceback_in_browser']) {
+        $showtb = ($_SERVER['show_traceback_in_browser'] && lib::client_is_internal_host());
+        if ($showtb) {
             print "<hr/>Traceback: <pre>";
         }
         error_log("cwd is ".getcwd());
@@ -191,11 +197,11 @@ class lib {
         foreach (explode("\n", $x) as $l) {
             $l = preg_replace('@(\d) '.$_SERVER['filebase'].'/(.+)@', '\1 \2', $l);
             error_log($l);
-            if ($_SERVER['show_traceback_in_browser']) {
+            if ($showtb) {
                 print "$l\n";
             }
         }
-        if ($_SERVER['show_traceback_in_browser']) {
+        if ($showtb) {
             print "</pre>";
         }
     }
