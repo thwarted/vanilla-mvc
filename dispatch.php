@@ -80,6 +80,7 @@ try {
 
     header("HTTP/1.1 500 Internal Error");
     lib::log_exception($e);
+    print lib::debugbox();
 
 }
 
