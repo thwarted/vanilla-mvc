@@ -290,8 +290,8 @@ class DBIdbh {
             }
             return $ret;
         }
-        if (is_numeric($value) && intval($value) < 99999) {
-            return ($value + 0);
+        if (is_string($value) && is_numeric($value) && strval(intval($value)) === $value) {
+            return intval($value);
         }
         if ($this->outter_quotes) {
             return "'".$this->dbd->quote($value)."'";
