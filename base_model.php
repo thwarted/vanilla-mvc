@@ -2,6 +2,10 @@
 
 require_once "vanilla/modellib.php";
 
+define('ReferringField', 2);
+define('VirtualField', 4);
+define('IsForeign', 8);
+
 class base_model {
     protected $__members = array();
     protected $__original_values = array();
@@ -15,15 +19,17 @@ class base_model {
         _model_data::$virtual_fields[$c] = array();
     }
 
-    public function primary_key($pk, $isforeign=false) {
+    public function primary_key($pk, $o=array()) {
         _model_data::$primary_key[get_class($this)] = $pk;
-        _model_data::$primary_key_is_foreign[get_class($this)] = $isforeign;
+        _model_data::$primary_key_is_foreign[get_class($this)] = !(empty($o[IsForeign]));
     }
 
     private function _get_field_list() {
+        global $dbh;
+
         $c = get_class($this);
         if (!isset(_model_data::$fieldlist[$c])) {
-            $fl = '*';
+            $fl = sprintf('%s.*', $dbh->quote_label(_model_data::$table[$c]));
             /*
             global $dbh;
             $table = _model_data::$table[get_class($this)];
@@ -38,7 +44,6 @@ class base_model {
             d($cols, $table);
             */
             $vf = array();
-            global $dbh;
             foreach (_model_data::$virtual_fields[$c] as $n=>$expr) {
                 $vf[] = "$expr as ".$dbh->quote_label($n);
             }
@@ -51,24 +56,29 @@ class base_model {
         return _model_data::$fieldlist[$c];
     }
 
+    # NOTE any field references in $expr must be prefixed with a (properly quoted?) table name
     public function virtual_field($name, $expr) {
         _model_data::$virtual_fields[get_class($this)][$name] = $expr;
     }
 
-    public function has_one($model_name, $bycol = NULL) {
+    public function has_one($model_name, $o=array()) {
+        $bycol = isset($o[ReferringField]) ? $o[ReferringField] : NULL;
         # family::has_one(house) => house.family_id references family.id
         # family->house is created
 
         # model_name.bycol points to this
         # accessible via this->model_name
         # this->model_name->bycol should point to this
+        $c = get_class($this);
         if (!isset($bycol)) {
-            $bycol = sprintf('%s_id', get_class($this));
+            $bycol = sprintf('%s_id', $c);
         }
-        _model_data::$has_one[get_class($this)][$model_name] = $bycol;
+        _model_data::$has_one[$c][$model_name] = $bycol;
     }
     
-    public function belongs_to($model_name, $bycol = NULL, $thisfieldname=NULL) {
+    public function belongs_to($model_name, $o=array()) {
+        $bycol = isset($o[ReferringField]) ? $o[ReferringField] : NULL;
+        $thisfieldname = isset($o[VirtualField]) ? $o[VirtualField] : NULL;
         # house::belongs_to(family) => house.family_id references family.id
         # house->family is created
 
@@ -84,7 +94,8 @@ class base_model {
         _model_data::$belongs_to[get_class($this)][$thisfieldname] = array($model_name, $bycol);
     }
 
-    public function has_many($model_name, $bycol=NULL) {
+    public function has_many($model_name, $o=array()) {
+        $bycol = isset($o[ReferringField]) ? $o[ReferringField] : NULL;
         # family::has_many(child) => child.family_id references family.id
         # family->child = array(of child)
 
@@ -94,6 +105,7 @@ class base_model {
         if (!isset($bycol)) {
             $bycol = sprintf('%s_id', $model_name);
         }
+        d(get_class($this)." has many $model_name by $bycol");
         _model_data::$has_many[get_class($this)][$model_name] = $bycol;
     }
 
@@ -314,7 +326,7 @@ class base_model {
             $sth->execute($this->$PK);
             $this->__original_values = array();
             $this->__members = array();
-            # FIXME iterate over has_one and has_many and force updates on them too
+            # FIXME maybe iterate over has_one and has_many and force updates on them too
             $sth->fetchrow_object($this);
         }
     }
@@ -334,15 +346,20 @@ class base_model {
             return array();
         }
 
-        $PK = _model_data::$primary_key[get_class($this)];
-        if (intval($cond).'' == "$cond") {
+        $class = get_class($this);
+        $TKq = $dbh->quote_label(_model_data::$table[$class]);
+        $PK = _model_data::$primary_key[$class];
+        $PKq = $dbh->quote_label($PK);
+        #d(array($TKq, $PKq));
+
+        if (strval(intval($cond)) === "$cond") {
             $a = array($cond);
-            $where = $PK.' = ?';
+            $where = sprintf('%s.%s = ?', $TKq, $PKq);
         } elseif (is_array($cond)) {
             $a = array();
             $where = array();
             foreach ($cond as $f=>$v) {
-                $where[] = $dbh->quote_label($f).' = ?';
+                $where[] = sprintf('%s.%s = ?', $TKq, $dbh->quote_label($f));
                 $a[] = $v;
             }
             $where = join(' and ', $where);
@@ -358,18 +375,17 @@ class base_model {
             }
             $where = $cond;
         } else {
-            throw new Exception("illegal type for conditions to ".get_class($this)."::find");
+            throw new Exception("illegal type for conditions to $class::find");
         }
 
         $fields = $this->_get_field_list();
-        $q = "select $fields from "._model_data::$table[get_class($this)]." where ".$where;
+        $q = "select $fields from $TKq where ".$where;
         if (isset($limit)) {
             $q .= " limit $limit";
         }
         $sth = $dbh->prepare($q);
         $sth->execute_array($a);
         $r = array();
-        $class = get_class($this);
         while($o = $sth->fetchrow_object($class)) {
             $r[] = _object_cache::singleton($class, $o->$PK, $o);
         }
@@ -388,7 +404,68 @@ class base_model {
         return NULL;
     }
 
+    /*
+    public function find_by_join_through_sql($fromwheresql=NULL, $a=array()) {
+        if (!isset($fromwheresql)) {
+            return array();
+        }
+        $fields = $this->_get_field_list();
+        $q = "select $fields $fromwheresql";
+        $sth = $dbh->prepare($q);
+        $sth->execute_array($a);
+        $r = array();
+        $class = get_class($this);
+        while($o = $sth->fetchrow_object($class)) {
+            $r[] = _object_cache::singleton($class, $o->$PK, $o);
+        }
+        return $r;
+    }
+
+    public function has_many_through($model_name, $throughtable, $bycol=NULL) {
+        # product::has_many_through('image', 'product_image', 'product_id')
+        #   => product.id => product_image.product_id, product_image.image_id = image.id
+        # product->image = array(of image)
+        if (!isset($bycol)) {
+            $bycol = sprintf('%s_id', $model_name);
+        }
+        _model_data::$has_many_through[get_class($this)][$model_name] = array($throughtable, $bycol);
+    }
+
+    private function ___get_many_through($n) {
+        if (!isset($this->__members[$n])) {
+            $thisclass = get_class($this);
+            $PK = _model_data::$primary_key[$thisclass];
+            $me = $this->$PK;
+
+            list($through, $fk) = _model_data::$has_many_through[$thisclass][$n];
+            #lib::el("demand loading many $n through $through for ".get_class($this));
+
+            $mk = sprintf('%s_id', $thisclass);
+
+            $x = model($through)->find(array($mk=>$me));
+            $x = array_map('__map_to_id', $x);
+
+            global $dbh;
+            $this->__members[$n] = model($n)->find(
+                    $dbh->quote_label($fk)." in (?:x:join)", array("x"=>$x) );
+        }
+        return $this->__members[$n];
+    }
+    */
+
 }
+
+/*
+function __map_to_id($o) {
+    if (is_object($o)) {
+        if (isset(_model_data::$primary_key[get_class($o)])) {
+            $PK = _model_data::$primary_key[get_class($o)];
+            return $o->$PK;
+        }
+    }
+    return NULL;
+}
+*/
 
 if ($__x = opendir("./models")) {
     $__y = array();
