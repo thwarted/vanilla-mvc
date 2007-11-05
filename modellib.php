@@ -80,7 +80,17 @@ class _model_data {
     create table house (
         id
         family_id
-    );
+    )
+
+    create table rooms (
+        id
+        name
+    )
+
+    create house_rooms (
+        house_id
+        room_id
+    )
 
     create table family (
         id
@@ -90,6 +100,11 @@ class _model_data {
         id
         family_id
     )
+
+    house belongs_to family by family_id
+    family has_one house by family_id
+
+    house has_many room through house_rooms
 
     */
 
@@ -109,6 +124,12 @@ class _model_data {
     # family::has_many(child) => child.family_id references family.id
     # family->child is created as an array()
     static public $has_many = array();
+
+    # TODO
+    # product::has_many_through('image', 'product_image', 'product_id')
+    #   => product.id => product_image.product_id, product_image.image_id = image.id
+    # product->image = array(of image)
+    #static public $has_many_through = array();
 
     static public $virtual_fields = array();
 
