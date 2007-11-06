@@ -236,6 +236,8 @@ function url() {
             # could pass in the result of get_class or __CLASS__;
             # in that case, strip off the prefixing controller_ part
             $i = $m[1];
+        } elseif (empty($i)) {
+            continue;
         }
         $o[] = preg_replace('@^/@', '', preg_replace('@/$@', '', $i));
     }
