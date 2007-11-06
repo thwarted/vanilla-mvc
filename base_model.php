@@ -345,6 +345,8 @@ class base_model {
             $lastarg = array_pop($args);
             if (is_int($lastarg)) {
                 $limit = $lastarg;
+            } else {
+                array_push($args, $lastarg);
             }
         }
 
@@ -370,11 +372,14 @@ class base_model {
             }
             $where = join(' and ', $where);
         } elseif (is_string($cond)) {
+                d(count($args)." args left");
             if (count($args)) {
+                d(count($args)." args left");
                 $a = array_shift($args);
                 if (!is_array($a)) {
                     throw new Exception("illegal type for placeholder list");
                 }
+                d($a);
             } else {
                 # assume there are no placeholder variables
                 $a = array();
@@ -384,10 +389,14 @@ class base_model {
             throw new Exception("illegal type for conditions to $class::find");
         }
 
-        $fields = $this->_get_field_list();
-        $q = "select $fields from $TKq where ".$where;
-        if (isset($limit)) {
-            $q .= " limit $limit";
+        if (preg_match('/^\s*select/', $where)) {
+            $q = $where;
+        } else {
+            $fields = $this->_get_field_list();
+            $q = "select $fields from $TKq where ".$where;
+            if (isset($limit)) {
+                $q .= " limit $limit";
+            }
         }
         $sth = $dbh->prepare($q);
         $sth->execute_array($a);
