@@ -118,6 +118,7 @@ abstract class base_controller {
         }
 
         if ($this->autoRender) {
+            header("Content-type: text/html; charset=\"UTF-8\"");
             $this->view->display($viewfile);
         } else {
             return $this->view->fetch($viewfile);
