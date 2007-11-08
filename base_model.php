@@ -372,14 +372,14 @@ class base_model {
             }
             $where = join(' and ', $where);
         } elseif (is_string($cond)) {
-                d(count($args)." args left");
+                #d(count($args)." args left");
             if (count($args)) {
-                d(count($args)." args left");
+                #d(count($args)." args left");
                 $a = array_shift($args);
                 if (!is_array($a)) {
                     throw new Exception("illegal type for placeholder list");
                 }
-                d($a);
+                #d($a);
             } else {
                 # assume there are no placeholder variables
                 $a = array();
