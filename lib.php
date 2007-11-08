@@ -267,9 +267,12 @@ function absolute($u) {
     return $u;
 }
 
-function array_values_recursive($array) {
-   $flat = array();
-   foreach ($array as $value) {
+function array_values_recursive($a) {
+    if (!is_array($a)) {
+        return array($a);
+    }
+    $flat = array();
+    foreach ($a as $value) {
         if (is_array($value)) {
             $flat = array_merge($flat, array_values_recursive($value));
         } else {
