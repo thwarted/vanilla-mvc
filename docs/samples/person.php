@@ -32,7 +32,7 @@ class person implements Iterator {
 
     # input and editing forms are often closely tied to the model
     # so here the model defines a ::form static function that builds
-    # the base of the formk
+    # the base of the form
     public static function augment(form $f) {
 
         # add fields to the form

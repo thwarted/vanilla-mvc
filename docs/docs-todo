@@ -1,0 +1,26 @@
+lib::$appvars => smarty $app variable
+
+controller methods
+        __x internal, private methods
+        _x vanilla internal methods
+        x REST invocaible messages
+        x_ is REST invocable as /controller/x/
+
+template_conf.php
+smarty_custom.php
+pre_dispatch_hook being invoked if it exists
+internal_hosts_regexp
+default_controller
+allowed_dynamic_media
+all_views_media_paths
+
+setting search paths for related media
+    media/view-path/view-name*.{css,js}
+    views/view-path/view-name*.{css,js}
+
+PHP's self and get_class() is busted with static methods called through descendent classes, work around is to use
+model('class') to get a designated instance created just for calling methods (effectively) statically.
+model('class')->find(...) is the standard idiom in vanilla for this (replaces the more sane but busted (in PHP) class::find(...)
+
+"I want to extend base_controller for all my controllers, but if I modifed vanilla/base_controller, it won't survive an update"
+create a new base class that extends base_controller, require_once the file that defines it in a file in setup, and extend all your controllers from that base class rather than from base_controller directly
