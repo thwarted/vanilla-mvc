@@ -159,6 +159,7 @@ class DBIstatement {
         $qend = __dbi_getmicrotime();
         $this->executed_stmt = $stmt;
         if (!empty($_SERVER['debugsql'])) d($stmt);
+        #error_log($stmt);
         $qlen = sprintf('%0.5f', $qend - $qstart);
         $this->execution_time = $qlen;
         $__dbi_query_runtime += $qlen;
