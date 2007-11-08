@@ -637,7 +637,17 @@ class form implements Countable, ArrayAccess, Iterator {
                 $r .= $i->html();
             }
         }
-        $r .= '<input type="hidden" name="form" value="'.$this->_name.'" /></form>';
+        if ($this->_name) {
+            $r .= '<input type="hidden" name="form" value="'.$this->_name.'" /></form>';
+        }
+        return $r;
+    }
+
+    public function url_getvars() {
+        $r = array();
+        foreach ($this->_fields as $fname=>$i) {
+            $r[$i->name()] = $i->value();
+        }
         return $r;
     }
 
