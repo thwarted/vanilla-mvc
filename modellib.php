@@ -27,13 +27,13 @@ class _object_cache {
     }
 
     public static function store($class, $pkvalue, $o) {
-        lib::el(sprintf('objcache assigning %s(%d)', $class, $pkvalue));
+        #lib::el(sprintf('objcache assigning %s(%d)', $class, $pkvalue));
         self::$cache[$class][$pkvalue] = $o;
     }
 
     public static function get($class, $pkvalue) {
         if ( isset(self::$cache[$class][$pkvalue]) && is_object(self::$cache[$class][$pkvalue]) ) {
-            lib::el(sprintf('objcache     using %s(%d)', $class, $pkvalue));
+            #lib::el(sprintf('objcache     using %s(%d)', $class, $pkvalue));
             return self::$cache[$class][$pkvalue];
         }
         #lib::el(sprintf('objcache getfailed %s(%d)', $class, $pkvalue));
