@@ -638,8 +638,9 @@ class form implements Countable, ArrayAccess, Iterator {
             }
         }
         if ($this->_name) {
-            $r .= '<input type="hidden" name="form" value="'.$this->_name.'" /></form>';
+            $r .= '<input type="hidden" name="form" value="'.$this->_name.'" />';
         }
+        $r .= '</form>';
         return $r;
     }
 
