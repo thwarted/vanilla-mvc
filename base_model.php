@@ -303,9 +303,12 @@ class base_model {
     }
 
     private function _commit_insert() {
+        global $dbh;
         lib::el("commit_insert for ".get_class($this));
         $f = array();
+        $fd = array();
         $s = array();
+        $sd = array();
         foreach ($this->__original_values as $n=>$c) {
             if (isset(_model_data::$has_one[get_class($this)][$n])
              || isset(_model_data::$has_many[get_class($this)][$n])) {
@@ -313,20 +316,25 @@ class base_model {
                 # developer must manually invoke update on those
                 next;
             }
-            $f[] = $n;
-            $s[] = $this->$n;
+            $f[] = $dbh->quote_label($n);
+            $fd[] = $dbh->quote_label($n).' = ?';
+            $s[] = $this->$n; # for insert clause
+            $sd[] = $this->$n; # for duplicate key clause
         }
-        global $dbh;
         $x = join(', ', array_fill(0, count($f), '?'));
         $q = "insert into ".$dbh->quote_label(_model_data::$table[get_class($this)])
                 # FIXME use dbi identifer quoting on elements of $f
                 ." (".join(', ', $f).") values (".$x.")";
 
-        d($q);
-        d($s);
+        if (_model_data::$primary_key_is_foreign[get_class($this)]) {
+            $q .= " on duplicate key update ".join(', ', $fd);
+            foreach ($sd as $x) { # could use array_merge or something, perhaps?
+                $s[] = $x;
+            }
+        }
         $sth = $dbh->prepare($q);
         $sth->execute_array($s);
-        lib::el($sth->_stmt());
+        #lib::el($sth->_stmt());
 
         $sth = $dbh->prepare('select last_insert_id()');
         $sth->execute();
