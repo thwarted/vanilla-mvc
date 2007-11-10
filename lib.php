@@ -123,7 +123,7 @@ class lib {
         }
         $box = "<div id='debugbox' style='clear: both; margin-top: 8em; padding: 4em 0.5em 0px 0.5em;'>";
 
-        $box .= "<table width='100%' border='1' rules='rows,cols' cellpadding='4'>\n";
+        $box .= "<table width='100%' border='1' rules='all' cellpadding='4'>\n";
 
         $_SERVER['endtime'] = microtime(true);
         $runtime = $_SERVER['endtime'] - $_SERVER['starttime'];
