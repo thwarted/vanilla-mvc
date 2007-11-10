@@ -619,7 +619,11 @@ class form implements Countable, ArrayAccess, Iterator {
     }
 
     public function start() {
-        $r = '<form id="'.$this->_name.'" method="'.$this->_submit_method.'"';
+        $id = '';
+        if ($this->_name) {
+            $id = ' id="'.$this->_name.'"';
+        }
+        $r = '<form'.$id.' method="'.$this->_submit_method.'"';
         if ($this->has_fileupload()) {
             $r .= ' enctype="multipart/form-data"';
         }
