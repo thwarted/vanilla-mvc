@@ -298,6 +298,15 @@ function array_values_recursive($a) {
 
 $__RECMSG = array();
 
+function caller($asstring=true) {
+    $tb = debug_backtrace();
+    $frame = $tb[2];
+    if ($asstring) {
+        return sprintf('%s:%d', preg_replace('@^'.$_SERVER['filebase'].'@', '', $frame['file']), $frame['line']);
+    } 
+    return $tb[2];
+}
+
 function d($msg, $desc = '') {
     global $__RECMSG;
 
