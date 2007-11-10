@@ -48,8 +48,9 @@ function invoke_form_handler() {
                 $handlefunc = sprintf('handle_form_%s', $formid);
                 if (file_exists($modelfile)) {
                     require_once $modelfile;
-                    if (method_exists($model, $handlefunc)) {
-                        call_user_func(array(model($model), $handlefunc));
+                    $cb = array($model, $handlefunc);
+                    if (is_callable($cb)) {
+                        call_user_func($cb);
                     }
                 } 
             } # no - in form name
