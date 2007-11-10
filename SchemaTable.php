@@ -44,7 +44,7 @@ class SchemaTable {
             if ($c->source) {
                 $l = sprintf("   %s %s\n         by key (self).%s", $c->nameQ, $c->class, $c->source);
             } elseif ($c->collectionsql) {
-                $tnQ =
+                # see ONE-OR-MANY-CHECK in Model.php
                 $l = sprintf("   %s collection of %s\n         by query %s", $c->nameQ, $c->class, $c->collectionsql);
             } else {
                 $l = sprintf('   %s is UNKNOWN', $c->nameQ);
@@ -71,6 +71,8 @@ class SchemaTable {
     }
 
     public function _conditions_to_query($cond) {
+        global $dbh;
+
         if (strval(intval($cond)) === "$cond") {
             # simple integer key
             $a = array('id'=>$cond);
@@ -104,6 +106,12 @@ class SchemaTable {
         global $dbh;
         if (empty($cond)) return array();
 
+        if (!empty($limit) && !preg_match('/^\d+(,\d+)?$/', $limit)) {
+            # FIXME report a better error here
+            error_log("invalid limit $limit");
+            return array();
+        }
+
         list($where, $a) = $this->_conditions_to_query($cond);
 
         if (preg_match('/^\s*select/', $where)) {
@@ -116,7 +124,7 @@ class SchemaTable {
         }
         $sth = $dbh->prepare($q);
         $sth->execute($a);
-        error_log($sth->_stmt());
+        #error_log($sth->_stmt());
         $r = array();
         $PK = $this->pk;
         $class = $this->name;
@@ -157,7 +165,9 @@ class SchemaTable {
         # we only track one field as the primary key
         # if the primary key is composed of more
         # than one field, it is useless to us
-        if (count($this->pk) > 1) {
+        if (count($this->pk) == 0) {
+            error_log("WARNING: ".$this->name." does not define a primary key");
+        } elseif (count($this->pk) > 1) {
             error_log("WARNING: ".$this->name." has a primary key composed of more than one column");
             $this->pk = NULL;
         } else {
@@ -236,8 +246,10 @@ class SchemaTable {
                 #error_log("found table $asctbname for ".$this->name." through $thrutbname");
 
                 # found a match by name, now see if $throughtable has foreign key to $asctbname
-                $thrutb = $this->db->tables[$thrutbname];
-                $asctb = $this->db->tables[$asctbname];
+                $thrutb = @ $this->db->tables[$thrutbname];
+                $asctb = @ $this->db->tables[$asctbname];
+
+                if (!$thrutb || !$asctb) continue;
 
                 if (isset($thrutb->virtual[$asctbname])) {
 

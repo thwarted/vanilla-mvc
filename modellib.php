@@ -63,7 +63,7 @@ class _object_cache {
     }
 }
 
-class empty_model {  
+class EmptyModel {
     public function __call($m, $a) {
         return NULL;
     }
@@ -85,42 +85,40 @@ class empty_model {
     }
 }
 
+/*
 class _model_data {
     static public $table = array();
     static public $primary_key = array();
     static public $primary_key_is_foreign = array();
 
-    /*
-    create table house (
-        id
-        family_id
-    )
-
-    create table rooms (
-        id
-        name
-    )
-
-    create house_rooms (
-        house_id
-        room_id
-    )
-
-    create table family (
-        id
-    )
-
-    create table child (
-        id
-        family_id
-    )
-
-    house belongs_to family by family_id
-    family has_one house by family_id
-
-    house has_many room through house_rooms
-
-    */
+    # create table house (
+    #    id
+    #    family_id
+    # )
+    #
+    # create table rooms (
+    #    id
+    #    name
+    # )
+    # 
+    # create house_rooms (
+    #    house_id
+    #    room_id
+    # )
+    #
+    # create table family (
+    #    id
+    # )
+    #
+    # create table child (
+    #    id
+    #    family_id
+    # )
+    #
+    # house belongs_to family by family_id
+    # family has_one house by family_id
+    # 
+    # house has_many room through house_rooms
 
     # family::has_one(house) => house.family_id references family.id
     # family is referenced by house
@@ -149,4 +147,46 @@ class _model_data {
 
     static public $fieldlist = array();
 }
+*/
+/*
 
+if ($__x = opendir("./models")) {
+    $__y = array();
+    while (($__f = readdir($__x)) !== false) {
+        if (filetype("./models/$__f") === 'file' && preg_match('/\.php$/', $__f)) {
+            array_push($__y, $__f);
+        }
+    }
+    closedir($__x);
+    sort($__y);
+
+    foreach ($__y as $__f) {
+        require_once ("./models/$__f");
+    }
+    */
+/*
+    $__p = model(false);
+    foreach ($__y as $__f) {
+        require_once ("./models/$__f");
+        $__x = basename($__f, '.php');
+        $__z = $__p.strtoupper($__x);
+        $GLOBALS[$__z] = eval("return new $__x();");
+        if (method_exists($GLOBALS[$__z], 'init')) {
+            $GLOBALS[$__z]->init();
+        }
+    }
+*/
+    /*
+    unset($__y);
+    unset($__f);
+    unset($__x);
+    unset($__z);
+    unset($__p);
+}
+
+function model($n) {
+    global $schema;
+
+    return @ $schema->tables[$n];
+}
+*/

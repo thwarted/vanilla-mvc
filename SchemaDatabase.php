@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 
+require_once "vanilla/modellib.php";
+require_once "vanilla/SchemaTable.php";
+require_once "vanilla/SchemaColumn.php";
+require_once "vanilla/ModelCollection.php";
+require_once "vanilla/Model.php";
+
 class SchemaDatabase {
+    static $activedb = NULL;
+
     public $name;
     public $nameQ;
 
@@ -24,10 +32,20 @@ class SchemaDatabase {
 
     public function __construct($name) {
         global $dbh;
+
         $this->nameQ = $dbh->quote_label($name);
         $this->___find_tables();
 
         $this->___find_references();
+    }
+
+    public static function register_schema($sdb) {
+        $c = get_class();
+        if ($sdb instanceof $c) {
+            self::$activedb = $sdb;
+        } else {
+            throw new Exception("argument 1 to ".get_class()."::register_schema is not a ".get_class());
+        }
     }
 
     public function dump() {
@@ -39,21 +57,27 @@ class SchemaDatabase {
 
     private function ___find_tables() {
         global $dbh;
-        /*
+
         $sth = $dbh->prepare("show tables from ".$this->nameQ);
         $sth->execute();
         while(list($tn) = $sth->fetchrow_array()) {
             $this->tables[$tn] = new SchemaTable($this, $tn);
+            if (!class_exists($tn)) {
+                eval("class $tn extends Model { }");
+            }
         }
-        */
-        $tx = 'product,product_image,image,imgdata,envshot,product_envshot,role,user';
-        $tx .= ',user,role,personal_info,trade_reference';
+
+        /*
+        #$tx = 'product,product_image,image,imgdata,envshot,product_envshot,role,user';
+        #$tx .= ',user,role,personal_info,trade_reference';
+        #$tx = 'user,email_outgoing';
         foreach (preg_split('/,/', $tx) as $tn) {
             $this->tables[$tn] = new SchemaTable($this, $tn);
             if (!class_exists($tn)) {
                 eval("class $tn extends Model { }");
             }
         }
+        */
 
         $this->REtables = sprintf('/^((\w+_)??(%s))_id$/', join('|', array_keys($this->tables)));
 
@@ -74,6 +98,10 @@ class SchemaDatabase {
         foreach ($this->tables as $name=>$t) {
             $t->___create_through_joins();
         }
+    }
+
+    public function model($n) {
+        return @ $this->tables[$n];
     }
 }
 
