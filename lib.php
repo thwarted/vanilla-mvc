@@ -300,7 +300,7 @@ $__RECMSG = array();
 
 function caller($asstring=true) {
     $tb = debug_backtrace();
-    $frame = $tb[2];
+    $frame = $tb[1];
     if ($asstring) {
         return sprintf('%s:%d', preg_replace('@^'.$_SERVER['filebase'].'@', '', $frame['file']), $frame['line']);
     } 
