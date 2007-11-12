@@ -20,14 +20,6 @@
 # TODO
 # for those drivers that use PDO, catch PDOException and map to DBIException
 
-$__dbi_query_count = 0;
-$__dbi_fetchrow_count = 0;
-$__dbi_query_runtime = 0;
-
-function __dbi_getmicrotime(){
-    return microtime(true);
-}
-
 /*
  * CONNECTING
  *  $dbh = DBI::connect('dbi:DatabaseType:data=base;specific=options');
@@ -115,7 +107,6 @@ class DBIstatement {
     }
 
     public function execute() {
-        global $__dbi_query_runtime;
 
         $numargs = func_num_args();
         if ($numargs) {
@@ -168,15 +159,15 @@ class DBIstatement {
             throw new DBIException("too few binding parameters in query $stmt");
         }
         $this->bindings = array();
-        $qstart = __dbi_getmicrotime();
+        $qstart = DBI::getmicrotime();
         $this->cursor_handle = $this->dbh->dbd->query($stmt);
-        $qend = __dbi_getmicrotime();
+        $qend = DBI::getmicrotime();
         $this->executed_stmt = $stmt;
         if (!empty($_SERVER['debugsql'])) d($stmt);
         #error_log($stmt);
         $qlen = sprintf('%0.5f', $qend - $qstart);
         $this->execution_time = $qlen;
-        $__dbi_query_runtime += $qlen;
+        DBI::$query_runtime += $qlen;
 
         if (!$this->cursor_handle) {
             $e = new DBIException($this->dbh->dbd->error());
@@ -224,10 +215,9 @@ class DBIstatement {
     }
 
     public function fetchrow_array() {
-        global $__dbi_fetchrow_count;
 
         if ($this->cursor_handle) {
-            $__dbi_fetchrow_count++;
+            DBI::$fetchrow_count++;
             return $this->dbh->dbd->fetch_row($this->cursor_handle);
         }
         /* should raise error about trying to read from an invalid cursor_handle */
@@ -238,17 +228,15 @@ class DBIstatement {
     }
 
     public function fetchrow_hash() {
-        global $__dbi_fetchrow_count;
         if ($this->cursor_handle) {
-            $__dbi_fetchrow_count++;
+            DBI::$fetchrow_count++;
             return $this->dbh->dbd->fetch_hash($this->cursor_handle);
         }
         /* should raise error about trying to read from an invalid cursor_handle */
     }
 
     public function fetchrow_hashref() {
-        global $__dbi_fetchrow_count;
-        $__dbi_fetchrow_count++;
+        DBI::$fetchrow_count++;
         return $this->fetchrow_hash();
     }
 
@@ -316,9 +304,8 @@ class DBIdbh {
     }
 
     public function prepare($stmt) {
-        global $__dbi_query_count;
 
-        $__dbi_query_count++;
+        DBI::$query_count++;
         $sth = new DBIstatement($this, $stmt);
         return $sth;
     }
@@ -333,15 +320,19 @@ class DBIdbh {
     }
 
     public function stats() {
-        global $__dbi_query_count;
-        global $__dbi_fetchrow_count;
-        global $__dbi_query_runtime;
-
-        return "$__dbi_query_count queries, $__dbi_fetchrow_count rows fetched, $__dbi_query_runtime seconds";
+        return sprintf("%d queries, %d rows fetched, %d seconds", DBI::$query_count, DBI::$fetchrow_count, DBI::$query_runtime);
     }
 }
 
 class DBI {
+    public static $query_count = 0;
+    public static $fetchrow_count = 0;
+    public static $query_runtime = 0;
+
+    function getmicrotime(){
+        return microtime(true);
+    }
+
     public static function connect($type, $a = NULL) {
         if (!isset($a) && strpos($type, 'dbi') === 0) {
             # dbi:DriverName:database=database_name;host=hostname;port=port
