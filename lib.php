@@ -111,6 +111,9 @@ class lib {
     }
 
     static public function client_is_internal_host() {
+        if (!isset($_SERVER['SERVER_SOFTWARE'])) {
+            return true; # run from the command line
+        }
         if (!$_SERVER['internal_hosts_regexp'] || !preg_match($_SERVER['internal_hosts_regexp'], $_SERVER['REMOTE_ADDR'])) {
             return false;
         }
@@ -150,6 +153,18 @@ class lib {
         lib::$debugboxshown = true;
 
         return $box;
+    }
+
+    public function log_callstack() {
+        try { throw new Exception(''); } catch (Exception $e) {
+            $x = $e->getTraceAsString();
+            $x = preg_split('/\n/', $x);
+            error_log("---------------------");
+            foreach ($x as $l) {
+                error_log($l);
+            }
+            error_log("---------------------");
+        }
     }
 
     private function trow($l, $v) {
@@ -196,14 +211,21 @@ class lib {
     static public function log_exception($e) {
         $msg = $e->getMessage();
         $code = $e->getCode();
+        $html = isset($_SERVER['SERVER_SOFTWARE']);
         if (method_exists($e, "getStatement")) {
-            $msg .= "<br/>".$e->getStatement();
+            $msg .= ($html?"<br/>":"\n").$e->getStatement();
         }
-        $msg = preg_replace("/\n/", "<br/>", $msg);
-        print "<h2>".get_class($e)." (code $code)</h2><tt>$msg</tt>\n";
-        $showtb = ($_SERVER['show_traceback_in_browser'] && lib::client_is_internal_host());
+        if ($html) {
+            $msg = preg_replace("/\n/", "<br/>", $msg);
+            print "<h2>".get_class($e)." (code $code)</h2><tt>$msg</tt>\n";
+        } else {
+            print get_class($e)." (code $code)\n$msg\n";
+        }
+        $showtb = $html && ($_SERVER['show_traceback_in_browser'] && lib::client_is_internal_host());
         if ($showtb) {
-            print "<hr/>Traceback: <pre>";
+            if ($html) {
+                print "<hr/>Traceback: <pre>";
+            }
         }
         error_log("cwd is ".getcwd());
         # FIXME should use the getTrace() method instead for easier/more-accurate formatting
