@@ -21,31 +21,23 @@ require_once "vanilla/ModelCollection.php";
 require_once "vanilla/Model.php";
 
 class SchemaDatabase {
-    static $activedb = NULL;
-
+    public $dbhandle;
     public $name;
     public $nameQ;
+    private $builtclasses = array();
+    private $setupcode = array();
 
     public $REtables = '';
 
     public $tables = array();
 
-    public function __construct($name) {
-        global $dbh;
+    public function __construct($name, $dbhandle, $options=array()) {
+        $this->dbhandle = $dbhandle;
 
-        $this->nameQ = $dbh->quote_label($name);
-        $this->___find_tables();
+        $this->nameQ = $this->dbhandle->quote_label($name);
+        $this->___find_tables_build_models($options);
 
         $this->___find_references();
-    }
-
-    public static function register_schema($sdb) {
-        $c = get_class();
-        if ($sdb instanceof $c) {
-            self::$activedb = $sdb;
-        } else {
-            throw new Exception("argument 1 to ".get_class()."::register_schema is not a ".get_class());
-        }
     }
 
     public function dump() {
@@ -55,16 +47,31 @@ class SchemaDatabase {
         }
     }
 
-    private function ___find_tables() {
-        global $dbh;
+    private function ___find_tables_build_models($options) {
 
-        $sth = $dbh->prepare("show tables from ".$this->nameQ);
+        $ignore = @ $options['ignore'];
+        if (!$ignore) $ignore = array();
+        else $ignore = preg_split('/\s*,\s*/', $ignore);
+
+        $sth = $this->dbhandle->prepare("show tables from ".$this->nameQ);
         $sth->execute();
         while(list($tn) = $sth->fetchrow_array()) {
-            $this->tables[$tn] = new SchemaTable($this, $tn);
+            if (in_array($tn, $ignore)) continue;
+            $ST = new SchemaTable($this, $tn);
+            $this->tables[$tn] = $ST;
             if (!class_exists($tn)) {
-                eval("class $tn extends Model { }");
+                #error_log("creating class $tn");
+                $code = 'class '.$tn.' extends Model { public static $__table__; }';
+                eval($code);
+                $this->builtclasses[$tn] = $code;
             }
+            $cv = get_class_vars($tn);
+            if (!array_key_exists('__table__', $cv)) {
+                throw new Exception('pre-defined Model class '.$tn.' does not have $_table as a public static member');
+            }
+            $code = sprintf('%s::$__table__ = $ST;', $tn);
+            eval($code);
+            $this->setupcode[] = $code;
         }
 
         /*

@@ -28,12 +28,12 @@ class SchemaColumn {
     public $collectionsql;
     public $through;
     public $ignore = false;
+    public $is_primary = false;
 
     public function __construct($table, $name) {
-        global $dbh;
         $this->table = $table;
         $this->name = $name;
-        $this->nameQ = $dbh->quote_label($name);
+        $this->nameQ = $this->table->db->dbhandle->quote_label($name);
     }
 
     public function dump() {

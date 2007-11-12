@@ -24,10 +24,9 @@ class SchemaTable {
     public $virtual = array();
 
     public function __construct($db, $name) {
-        global $dbh;
         $this->db = $db;
         $this->name = $name;
-        $this->nameQ = $dbh->quote_label($name);
+        $this->nameQ = $this->db->dbhandle->quote_label($name);
     }
 
     public function dump() {
@@ -55,7 +54,6 @@ class SchemaTable {
     }
 
     private function ___collist($tabalias=NULL, $fullcolalias=false) {
-        global $dbh;
         if (!isset($tabalias)) {
             $tabalias = $this->nameQ;
         }
@@ -63,7 +61,7 @@ class SchemaTable {
         foreach ($this->columns as $name=>$column) {
             $x = sprintf('%s.%s', $tabalias, $column->nameQ);
             if ($fullcolalias) {
-                $x .= " as ".$dbh->quote_label('_'.$this->name.'___'.$column->name);
+                $x .= " as ".$this->db->dbhandle->quote_label('_'.$this->name.'___'.$column->name);
             }
             $r[] = $x;
         }
@@ -71,8 +69,6 @@ class SchemaTable {
     }
 
     public function _conditions_to_query($cond) {
-        global $dbh;
-
         if (strval(intval($cond)) === "$cond") {
             # simple integer key
             $a = array('id'=>$cond);
@@ -89,7 +85,7 @@ class SchemaTable {
                 foreach ($cond as $f=>$v) {
                     $x = uniqid();
                     if (preg_match('/^\w+$/', $f)) {
-                        $f = $dbh->quote_label($f);
+                        $f = $this->db->dbhandle->quote_label($f);
                     }
                     $where[] = sprintf('%s = ?:%s', $f, $x);
                     $a[$x] = $v;
@@ -103,7 +99,6 @@ class SchemaTable {
     }
 
     public function find($cond=NULL, $limit=NULL) {
-        global $dbh;
         if (empty($cond)) return array();
 
         if (!empty($limit) && !preg_match('/^\d+(,\d+)?$/', $limit)) {
@@ -122,7 +117,7 @@ class SchemaTable {
         if ($limit) {
             $q .= " limit $limit";
         }
-        $sth = $dbh->prepare($q);
+        $sth = $this->db->dbhandle->prepare($q);
         $sth->execute($a);
         #error_log($sth->_stmt());
         $r = array();
@@ -130,7 +125,6 @@ class SchemaTable {
         $class = $this->name;
         while($o = $sth->fetchrow_object($class)) {
             $o = _object_cache::singleton($class, $o->$PK, $o);
-            $o->_from_database($this->db);
             $o->checkpoint();
             $r[] = $o;
         }
@@ -144,16 +138,17 @@ class SchemaTable {
     }
 
     public function ___find_columns() {
-        global $dbh;
 
-        $sth = $dbh->prepare("desc ".$this->nameQ);
+        $sth = $this->db->dbhandle->prepare("desc ".$this->nameQ);
         $sth->execute();
         while($r = $sth->fetchrow_hashref()) {
+            $c = new SchemaColumn($this, $r['Field']);
+
             if ($r['Key'] === 'PRI') {
                 $this->pk[] = $r['Field'];
+                $c->is_primary = true;
             }
 
-            $c = new SchemaColumn($this, $r['Field']);
             $c->name = $r['Field'];
             $c->type = $r['Type'];
             $c->nullable = !empty($r['Null']);
@@ -166,9 +161,9 @@ class SchemaTable {
         # if the primary key is composed of more
         # than one field, it is useless to us
         if (count($this->pk) == 0) {
-            error_log("WARNING: ".$this->name." does not define a primary key");
+            #error_log("WARNING: unsupported configuration: ".$this->name." does not define a primary key");
         } elseif (count($this->pk) > 1) {
-            error_log("WARNING: ".$this->name." has a primary key composed of more than one column");
+            #error_log("WARNING: unsupported configuration: ".$this->name." has a primary key composed of more than one column");
             $this->pk = NULL;
         } else {
             $this->pk = $this->pk[0];
@@ -203,7 +198,6 @@ class SchemaTable {
     }
 
     public function ___create_join_columns() {
-        global $dbh;
         /* 
         for every MODEL virtual-column VC
             TB = table named VC-name
@@ -228,7 +222,7 @@ class SchemaTable {
                 $v = new SchemaColumn($tb, $this->name);
                 $v->class = $this->name;
                 $v->virtual = true;
-                $v->collectionsql = $dbh->quote_label($field->source)." = ?:id";
+                $v->collectionsql = $this->db->dbhandle->quote_label($field->source)." = ?:id";
                 $tb->virtual[$this->name] = $v;
 
                 #error_log("(2) adding virtual column ".$tb->name.".".$this->name);

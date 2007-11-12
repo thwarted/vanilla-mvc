@@ -14,36 +14,64 @@
  * limitations under the License.
  */
 
+$_generation = 0; # used to avoid loops when saving data to the database
+
 class Model {
+    protected $_generation;
+    protected $_t;
+    protected $_db;
     protected $__db;
     protected $__members = array();
     protected $__virtmembers = array();
     protected $__original = array();
     protected $__jointype = NULL;
 
+    public function __construct($data=array()) {
+        $this->_t = eval('return '.get_class($this).'::$__table__;');
+        $this->_db = $this->_t->db;
+        foreach ($data as $f=>$v) {
+            $this->$f = $v;
+        }
+        $this->_generation = 0;
+    }
+
+    public function labelx() {
+        $pk = $this->_t->pk;
+        $pkv = @ $this->__members[$pk];
+        if (empty($pkv)) {
+            $pkv = '?';
+        }
+        return sprintf('%s(%s=%s)', get_class($this), $pk, $pkv);
+    }
+
     public function _from_database($x) {
+        throw new Exception("don't call _from_database");
         $this->__db = $x;
     }
 
     public function _refresh() {
-        $id = $this->id;
+        $pk = $this->_t->pk;
+        $id = $this->$pk;
         _object_cache::forget(get_class($this), $id);
         $this->__virtmembers = array();
         $this->__members = array();
-        $TB = @ $this->__db->tables[get_class($this)];
-        $x = $TB->find_first(id);
-        foreach ($TB->columns as $f=>$c) {
+        $x = $this->_t->find_first($id);  # this will give us a freshly created duplicate
+        foreach ($this->_t->columns as $f=>$c) {
+            # copy all the fields from the dup to this
             $this->$f = $x->$f;
         }
+        _object_cache::forget(get_class($this), $id); # forget the singleton dup
+        _object_cache::store(get_class($this), $id, $this); # store this
     }
 
-    public function ___set_virtual($n, $v, $TB) {
+    public function ___set_virtual($n, $v) {
         # get the primary key for the value we are setting
-        $PK = $this->__db->tables[$TB->virtual[$n]->class]->pk;
+        $remotetbclass = $this->_t->virtual[$n]->class;
+        $otherPK = $this->_db->tables[$remotetbclass]->pk;
         # find out which REAL/non-virtual column we should update with the key value
-        $source = $TB->virtual[$n]->source;
-        if (isset($v) && $v instanceof $TB->virtual[$n]->class) {
-            $this->$source = $v->$PK;
+        $source = $this->_t->virtual[$n]->source;
+        if (isset($v) && $v instanceof $remotetbclass) {
+            $this->$source = $v->$otherPK;
         } else {
             $this->$source = NULL;
         }
@@ -52,14 +80,11 @@ class Model {
     public function __set($n, $v) {
         $m = "__set_$n";
         if (is_callable(array($this, $m))) {
-            return call_user_func(array($this, $m), $n);
+            return call_user_func(array($this, $m), $v);
         }
 
-        $c = get_class($this);
-        $TB = @ $this->__db->tables[$c];
-
-        if (isset($TB->virtual[$n])) {
-            return $this->___set_virtual($n, $v, $TB);
+        if (isset($this->_t->virtual[$n])) {
+            return $this->___set_virtual($n, $v);
         }
         if (is_string($v) && is_numeric($v) && strval(intval($v)) === $v) {
             $v = intval($v);
@@ -72,15 +97,14 @@ class Model {
     }
 
     public function ___get_virtual($n) {
-        $c = get_class($this);
-        $vc = @ $this->__db->tables[$c]->virtual[$n];
+        $vc = $this->_t->virtual[$n];
         if (isset($vc)) {
             if ($vc->source) {
                 if (isset($this->__virtmembers[$n]) && $this->__virtmembers[$n] instanceof $vc->class) {
                     return $this->__virtmembers[$n];
                 }
                 $s = $vc->source;
-                $this->__virtmembers[$n] = $this->__db->tables[$vc->class]->find_first($this->$s);
+                $this->__virtmembers[$n] = $this->_db->tables[$vc->class]->find_first($this->$s);
                 return $this->__virtmembers[$n];
             } elseif ($vc->collectionsql) {
                 # ONE-OR-MANY-CHECK
@@ -90,15 +114,16 @@ class Model {
                 # if so, it's a one-to-one mapping, not a collection
                 # FIXME might want to move this check into one of the scanning functions and set a flag
                 # on the virtual column, and not use collectionsql for this
-                $ft = $this->__db->tables[$vc->class];
+                $thispk = $this->_t->pk;
+                $ft = $this->_db->tables[$vc->class];
                 if (is_string($ft->pk)) {
                     $vpk = $ft->pk;
-                    $vpkisfk = ($ft->columns[$vpk]->references == $c) ? true : false;
+                    $vpkisfk = ($ft->columns[$vpk]->references == get_class($this)) ? true : false;
                     if ($vpkisfk) {
 
                         if ( !isset($this->__virtmembers[$n]) || !($this->__virtmembers[$n] instanceof $vc->class) ) {
                             $s = $vc->collectionsql;
-                            $x = $ft->find_first(array($s, array('id'=>$this->id)));
+                            $x = $ft->find_first(array($s, array('id'=>$this->$thispk)));
                             $this->__virtmembers[$n] = $x;
                         }
 
@@ -106,8 +131,8 @@ class Model {
 
                         if ( !isset($this->__virtmembers[$n]) || !($this->__virtmembers[$n] instanceof ModelCollection) ) {
                             $s = $vc->collectionsql;
-                            $x = $ft->find(array($s, array('id'=>$this->id)));
-                            $c = new ModelCollection($vc->class, $this, $this->__db);
+                            $x = $ft->find(array($s, array('id'=>$this->$thispk)));
+                            $c = new ModelCollection($vc->class, $this, $this->_db);
                             foreach ($x as $e) {
                                 $c[] = $e;
                             }
@@ -129,11 +154,10 @@ class Model {
         if (is_callable(array($this, $m))) {
             return call_user_func(array($this, $m), $n);
         }
-        $c = get_class($this);
-        if (isset($this->__db->tables[$c]->virtual[$n])) {
+        if (isset($this->_t->virtual[$n])) {
             return $this->___get_virtual($n);
         }
-        return $this->__members[$n];
+        return (isset($this->__members[$n]) ? $this->__members[$n] : NULL);
     }
 
     public function __isset($n) {
@@ -145,9 +169,13 @@ class Model {
     }
 
     public function dump() {
+        $thispk = $this->_t->pk;
+        $r[$thispk] = $this->$thispk;
         foreach ($this->__members as $f=>$v) {
+            if ($f === $thispk) continue;
             if (is_object($v)) {
-                $pk = $this->__db->tables[get_class($v)]->pk;
+                # this case should never actually happen for regular members
+                $pk = $this->_db->tables[get_class($v)]->pk;
                 $x = sprintf('%s(%s=%d)', get_class($v), $pk, $v->$pk);
             } elseif (is_array($v)) {
                 $x = array();
@@ -156,12 +184,12 @@ class Model {
             }
             $r[$f] = $v;
         }
-        foreach (array_keys($this->__db->tables[get_class($this)]->virtual) as $f) {
-            if ($this->__db->tables[get_class($this)]->virtual[$f]->ignore) continue;
+        foreach (array_keys($this->_t->virtual) as $f) {
+            if ($this->_t->virtual[$f]->ignore) continue;
             $v = $this->$f; # virtual column doesn't exist until we request it
             if (is_object($v)) {
                 if (! ($v instanceof ModelCollection) ) {
-                    $pk = $this->__db->tables[get_class($v)]->pk;
+                    $pk = $this->_db->tables[get_class($v)]->pk;
                     $x = sprintf('%s(%s=%d)', get_class($v), $pk, $v->$pk);
                 } else {
                     $x = $v->dump();
@@ -177,13 +205,12 @@ class Model {
     }
 
     public function init($a) {
-        foreach ($this->__db->tables[get_class($this)]->columns as $colname=>$cinfo) {
+        foreach ($this->_t->columns as $colname=>$cinfo) {
             $this->$colname = isset($a[$colname]) ? $a[$colname] : NULL;
         }
     }
 
     public function load() {
-        global $dbh;
         # FIXME
         # assume ->id is set to the primary key
         # then load in the rest of the columns
@@ -199,21 +226,30 @@ class Model {
     }
 
     public function save() {
+        global $_generation;
+
+        $start_generation = $_generation;
+        if (empty($_generation)) {
+            $_generation = uniqid();
+        }
+        if ($_generation === $this->_generation) {
+            return;
+        }
+        $this->_generation = $_generation;
         $this->pre_save();
-        error_log(get_class($this)."xxxxxxx");
-        $pk = $this->__db->tables[get_class($this)]->pk;
-        if (isset($this->$pk)) {
+        if ($this->_is_new_row()) {
+            $this->_save_insert();
+        } else {
             $this->_save_update();
             $this->_save_virtuals();
-        } else {
-            $this->_save_insert();
+        }
+        if ($start_generation != $_generation) {
+            $_generation = false;
         }
     }
 
     private function _save_update() {
-        global $dbh;
-
-        $TB = $this->__db->tables[get_class($this)];
+        $TB = $this->_t;
         $pk = $TB->pk;
 
         $c = array();
@@ -221,23 +257,86 @@ class Model {
         $x = 1;
         foreach ($TB->columns as $colname=>$cinfo) {
             if ($colname === $pk) continue;
-            if ($this->__members[$colname] === $this->__original[$colname]) continue;
+            $oldval = @ $this->__original[$colname];
+            $newval = @ $this->__members[$colname];
+            if ($oldval === $newval) continue;
             $k = $colname[0].($x++);
             $c[] = sprintf('%s = ?:%s', $cinfo->nameQ, $k);
-            $a[$k] = $this->__members[$colname]; # get raw value
+            $a[$k] = @ $this->__members[$colname]; # get raw value
         }
 
         if (count($c)) {
             $q = "update ".$TB->nameQ." set ".join(', ', $c)." where ".$pk." = ?:id";
             $a['id'] = $this->$pk;
 
-            $sth = $dbh->prepare($q);
+            $sth = $this->_db->dbhandle->prepare($q);
             $sth->execute($a);
             $this->checkpoint();
         }
     }
 
+    private function _is_new_row() {
+        $TB = $this->_t;
+        $tn = $TB->nameQ;
+        $pk = $TB->pk;
+        $pkQ = $TB->columns[$pk]->nameQ;
+        $q = "select count(1) from $tn where $pkQ = ?";
+        $sth = $this->_db->dbhandle->prepare($q);
+        $sth->execute($this->$pk);
+        list($c) = $sth->fetchrow_array();
+        return !($c);
+    }
+
     private function _save_virtuals() {
+        $TB = $this->_t;
+        foreach ($TB->virtual as $f=>$cinfo) {
+            # going to recurse infinitely here 
+            if (is_object($this->$f)) {
+                $this->$f->save();
+            }
+        }
+    }
+
+    private function _save_insert() {
+        $TB = $this->_t;
+        $pk = $TB->pk;
+
+        $c = array();
+        $a = array();
+        $x = 1;
+        foreach ($TB->columns as $colname=>$cinfo) {
+            if ($colname === $pk && !$cinfo->references) {
+                # skip if it's the primary key and doesn't reference another table
+                continue;
+            }
+            if (isset($this->__members[$colname])) {
+                $k = $colname[0].($x++);
+                $a[$colname] = $this->__members[$colname]; # get raw value
+            }
+        }
+
+        if (count($a)) {
+            # since we're inserting this is going to be true
+            # unless the table has no columns -- oops
+            $tbn = $TB->nameQ;
+            $cnames = join(', ', array_keys($a));
+            $plcholders = join(', ', array_fill(0, count($a), '?'));
+            $q = "insert into $tbn ($cnames) values ($plcholders)";
+            $sth = $this->_db->dbhandle->prepare($q);
+            $sth->execute_array($a);
+            $pkinfo = $TB->columns[$pk];
+
+            # if primary key is a foreign reference, last_insert_id() is undefined
+            # since it is not auto-increment, don't try to update our pk value
+            # in that case
+            if (!$pkinfo->references) {
+                $ith = $this->_db->dbhandle->prepare("select last_insert_id()");
+                $ith->execute();
+                list($id) = $ith->fetchrow_array();
+                $this->$pk = $id;
+            }
+            $this->checkpoint();
+        }
     }
 
     /*
@@ -259,15 +358,16 @@ class Model {
     public static function find() {
         $modelclass = self::_find_static_invoking_class();
         $a = func_get_args();
-        lib::el("invoking $modelclass::find()");
-        return call_user_func_array(array(SchemaDatabase::$activedb->tables[$modelclass], 'find'), $a);
+        $o = eval('return '.$modelclass.'::$__table__;');
+        return call_user_func_array(array($o, 'find'), $a);
     }
 
     public static function find_first() {
         $modelclass = self::_find_static_invoking_class();
         $a = func_get_args();
-        lib::el("invoking $modelclass::find()");
-        return call_user_func_array(array(SchemaDatabase::$activedb->tables[$modelclass], 'find_first'), $a);
+        $code = 'return '.$modelclass.'::$__table__;';
+        $o = eval($code);
+        return call_user_func_array(array($o, 'find_first'), $a);
     }
 
     # oh my fucking god
@@ -285,7 +385,6 @@ class Model {
                 return $hist[$frame['file'].':'.$frame['line']];
             }
             $x = file($frame['file']);
-            error_log("read ".$frame['file'].":".$frame['line']);
             $line = $x[$frame['line']-1];
             $method = $frame['function'];
 
@@ -293,11 +392,11 @@ class Model {
                 throw new Exception(sprintf("%s:%s contains multiple static calls to $method, unable to resolve static method invocation",
                     $frame['file'], $frame['line']));
             }
-            if (preg_match('/\b(\w+)::'.$method.'\(/', $line, $m)) {
+            if (preg_match($rx='/\b(\w+)::'.$method.'\(/', $line, $m)) {
                 $target = $m[1];
                 if ($target === 'parent') {
                     # the actually call is through parent::find
-                    # so search backward through the file lookign for a class XXX line
+                    # so search backward through the file looking for a class XXX line
                     # thankfully, PHP doesn't allow nested classes
                     # nor does it allow include/require to BUILD class definitions
                     # (since include/require are run-time evaluated), so this
@@ -313,8 +412,6 @@ class Model {
                         throw new Exception(sprintf("unable to determine defining class for parent::%s call on %s:%s",
                             $method, $frame['file'], $frame['line']));
                     }
-                } else {
-                    $target = NULL;
                 }
                 $hist[$frame['file'].':'.$frame['line']] = $target;
                 return $target;

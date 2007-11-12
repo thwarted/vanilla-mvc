@@ -15,6 +15,7 @@
  */
 
 class ModelCollection implements Countable, ArrayAccess, Iterator {
+    private $_generation;
     private $__db;
     private $ownerobj = NULL;
     private $ofclass = NULL;
@@ -25,6 +26,22 @@ class ModelCollection implements Countable, ArrayAccess, Iterator {
         $this->ofclass = $ofclass;
         $this->ownerobj = $owner;
         $this->__db = $dbase;
+    }
+
+    public function save() {
+        global $_generation;
+
+        $start_generation = $_generation;
+        if (empty($_generation)) {
+            $_generation = uniqid();
+        }
+        if ($_generation === $this->_generation) {
+            return;
+        }
+        error_log("saving collection of type ".$this->ofclass);
+        if ($start_generation != $_generation) {
+            $_generation = false;
+        }
     }
 
     public function dump() {
