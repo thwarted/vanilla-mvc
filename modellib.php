@@ -63,6 +63,8 @@ class _object_cache {
     }
 }
 
+class empty_model extends EmptyModel { }
+
 class EmptyModel {
     public function __call($m, $a) {
         return NULL;
@@ -85,7 +87,6 @@ class EmptyModel {
     }
 }
 
-/*
 class _model_data {
     static public $table = array();
     static public $primary_key = array();
@@ -147,7 +148,6 @@ class _model_data {
 
     static public $fieldlist = array();
 }
-*/
 /*
 
 if ($__x = opendir("./models")) {
