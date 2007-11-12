@@ -31,6 +31,7 @@ require_once "vanilla/dbi.php";
 require_once "vanilla/base_controller.php";
 require_once "vanilla/invoke_controller.php";
 require_once "vanilla/base_model.php";
+require_once "vanilla/SchemaDatabase.php";
 
 require_once "setup/global_conf.php";
 
