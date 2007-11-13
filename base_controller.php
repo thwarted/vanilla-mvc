@@ -17,6 +17,7 @@
 require_once "vanilla/lib.php";
 
 abstract class base_controller {
+    protected $content_type = 'text/html';
     protected $viewname;
     protected $view;
     protected $autoRender;
@@ -132,7 +133,11 @@ abstract class base_controller {
         }
 
         if ($this->autoRender) {
-            header("Content-type: text/html; charset=\"UTF-8\"");
+            $content_type = $this->content_type;
+            if (preg_match('@^text/@', $content_type) && !preg_match('/charset=/i', $content_type)) {
+                $content_type .= '; charset="UTF-8"';
+            }
+            header("Content-type: ".$content_type);
             $this->view->display($viewfile);
         } else {
             return $this->view->fetch($viewfile);
