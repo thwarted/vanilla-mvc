@@ -14,6 +14,17 @@
  * limitations under the License.
  */
 
+function walk($array, $cb /* ... */ ) {
+    $startargs = func_get_args();
+    array_shift($startargs); # remove array
+    array_shift($startargs); # remove callback
+    foreach ($array as $v) {
+        $na = $startargs;
+        array_unshift($na, $v);
+        call_user_func_array($cb, $na);
+    }
+}
+
 class ModelCollection implements Countable, ArrayAccess, Iterator {
     private $_generation;
     private $_t;
@@ -44,6 +55,12 @@ class ModelCollection implements Countable, ArrayAccess, Iterator {
         if ($start_generation != $_generation) {
             $_generation = false;
         }
+    }
+
+    public function walk($callback /* .... */ ) {
+        $a = func_get_args();
+        array_unshift($a, $this);
+        call_user_func_array('walk', $a);
     }
 
     public function dump() {
