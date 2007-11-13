@@ -67,7 +67,7 @@ class SchemaDatabase {
             }
             $cv = get_class_vars($tn);
             if (!array_key_exists('__table__', $cv)) {
-                throw new Exception('pre-defined Model class '.$tn.' does not have $_table as a public static member');
+                throw new Exception('pre-defined Model class '.$tn.' does not have $__table__ as a public static member');
             }
             $code = sprintf('%s::$__table__ = $ST;', $tn);
             eval($code);
