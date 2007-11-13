@@ -16,7 +16,8 @@
 
 class ModelCollection implements Countable, ArrayAccess, Iterator {
     private $_generation;
-    private $__db;
+    private $_t;
+    private $_db;
     private $ownerobj = NULL;
     private $ofclass = NULL;
     private $members = array();
@@ -25,7 +26,8 @@ class ModelCollection implements Countable, ArrayAccess, Iterator {
     public function __construct($ofclass, $owner, $dbase) {
         $this->ofclass = $ofclass;
         $this->ownerobj = $owner;
-        $this->__db = $dbase;
+        $this->_t = $dbase->tables[$ofclass];
+        $this->_db = $dbase;
     }
 
     public function save() {
@@ -46,13 +48,24 @@ class ModelCollection implements Countable, ArrayAccess, Iterator {
 
     public function dump() {
         $r = array('collection-of'=>$this->ofclass);
-        $pk = $this->__db->tables[$this->ofclass]->pk;
+        $pk = $this->_t->pk;
         foreach ($this as $v) {
             $x = sprintf('%s(%s=%d)', $this->ofclass, $pk, $v->$pk);
             $r[$v->$pk] = $x;
         }
         foreach ($this->pendingdel as $v) {
             $r["deleted-".$v->$pk] = sprintf('%s(%s=%d)', $this->ofclass, $pk, $v->$pk);
+        }
+        return $r;
+    }
+
+    public function singular_ids() {
+        $r = array();
+        $pk = $this->_t->pk;
+        foreach ($this as $v) {
+            if (is_object($v) && $v instanceof $this->ofclass) {
+                $r[] = $v->$pk;
+            }
         }
         return $r;
     }
@@ -75,7 +88,7 @@ class ModelCollection implements Countable, ArrayAccess, Iterator {
     public function offsetSet($offset, $value) {
         if (is_object($value) && ($value instanceof $this->ofclass)) {
             if (empty($offset)) {
-                $pk = $this->__db->tables[$this->ofclass]->pk;
+                $pk = $this->_t->pk;
                 $offset = $value->$pk;
                 #error_log("offset is empty for ".$this->ofclass.".$pk, setting to $offset"); 
             }
