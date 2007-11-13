@@ -84,11 +84,7 @@ class lib {
         $smarty->register_prefilter(array('smarty_extensions', 'prefilter_convert_loop_breaks'));
         $smarty->register_prefilter(array('smarty_extensions', 'prefilter_convert_loop_continue'));
 
-        # should be fixed to 
         $smarty->assign_by_ref('app', lib::$appvars);
-
-        $smarty->link = array('root'=>$_SERVER['uribase']);
-        $smarty->assign_by_ref('link', $smarty->link);
 
         if (file_exists("setup/template_conf.php")) {
             include "setup/template_conf.php";
