@@ -116,6 +116,20 @@ class lib {
         return true;
     }
 
+    static public function dbstats() {
+        $x = array();
+        foreach (DBI::$statement_types as $stmt=>$count) { 
+            $x[] = sprintf('%d %s', $count, $stmt);
+        }
+        return sprintf('%d total queries; %d rows fetched; %0.6f query execution time; %s', 
+                    DBI::$query_count, DBI::$fetchrow_count, DBI::$query_runtime, join(', ', $x));
+    }
+
+    static public function runtime() {
+        $runtime = microtime(true) - $_SERVER['starttime'];
+        return sprintf('%0.6f sec', $runtime);
+    }
+
     static public function debugbox() {
         if (!lib::client_is_internal_host()) {
             return '';
@@ -124,15 +138,10 @@ class lib {
 
         $box .= "<table width='100%' border='1' rules='all' cellpadding='4'>\n";
 
-        $_SERVER['endtime'] = microtime(true);
-        $runtime = $_SERVER['endtime'] - $_SERVER['starttime'];
-        $box .= lib::trow('execution time', sprintf('%0.6f sec', $runtime));
-        $x = array();
-        foreach (DBI::$statement_types as $stmt=>$count) { 
-            $x[] = sprintf('%d %s', $count, $stmt);
-        }
-        $box .= lib::trow('database', sprintf('%d total queries; %d rows fetched; %0.6f query execution time; %s', 
-                    DBI::$query_count, DBI::$fetchrow_count, DBI::$query_runtime, join(', ', $x)));
+        $_SERVER['runtime'] = lib::runtime();
+        $box .= lib::trow('execution time', $_SERVER['runtime']);
+        $dbstats = lib::dbstats();
+        $box .= lib::trow('database', $dbstats);
 
         global $dbh;
 
@@ -217,6 +226,7 @@ class lib {
         if (method_exists($e, "getStatement")) {
             $msg .= ($html?"<br/>":"\n").$e->getStatement();
         }
+        error_log($msg);
         if ($html) {
             $msg = preg_replace("/\n/", "<br/>", $msg);
             print "<h2>".get_class($e)." (code $code)</h2><tt>$msg</tt>\n";
