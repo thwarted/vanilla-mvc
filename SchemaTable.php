@@ -276,7 +276,7 @@ class SchemaTable {
                             $thrutb->virtual[$this->name]->source
                     );
                     $this->virtual[$asctbname] = $c;
-                    $this->virtual[$thrutbname]->ignore = true;
+                    #$this->virtual[$thrutbname]->ignore = true;
                 }
             }
         }
