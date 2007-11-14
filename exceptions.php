@@ -51,7 +51,8 @@ class HTTPException extends Exception {
     public function body() {
         $code = $this->getCode();
         $msg = $this->getMessage();
-        $ret = "<html><head><title>$msg</title></head><body><h1>$code</h1>$msg<hr/><em>".$_SERVER['SERVER_SOFTWARE']."</em></body></html>";
+        $ss = isset($_SERVER['SERVER_SOFTWARE']) ? $_SERVER['SERVER_SOFTWARE'] : '';
+        $ret = "<html><head><title>$msg</title></head><body><h1>$code</h1>$msg<hr/><em>$ss</em></body></html>";
         return $ret;
     }
 }
