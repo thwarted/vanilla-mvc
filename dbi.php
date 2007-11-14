@@ -163,6 +163,9 @@ class DBIstatement {
         $this->cursor_handle = $this->dbh->dbd->query($stmt);
         $qend = DBI::getmicrotime();
         $this->executed_stmt = $stmt;
+        if (preg_match('/^\s*(\w+)\b/', $stmt, $m)) {
+            @ DBI::$statement_types[strtolower($m[1])]++;
+        }
         if (!empty($_SERVER['debugsql'])) d($stmt);
         #error_log($stmt);
         $qlen = sprintf('%0.5f', $qend - $qstart);
@@ -328,6 +331,7 @@ class DBI {
     public static $query_count = 0;
     public static $fetchrow_count = 0;
     public static $query_runtime = 0;
+    public static $statement_types = array();
 
     function getmicrotime(){
         return microtime(true);

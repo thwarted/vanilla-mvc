@@ -127,8 +127,12 @@ class lib {
         $_SERVER['endtime'] = microtime(true);
         $runtime = $_SERVER['endtime'] - $_SERVER['starttime'];
         $box .= lib::trow('execution time', sprintf('%0.6f sec', $runtime));
-        $box .= lib::trow('database', sprintf('%d total queries, %d rows fetched, %0.6f query execution time', 
-                    DBI::$query_count, DBI::$fetchrow_count, DBI::$query_runtime));
+        $x = array();
+        foreach (DBI::$statement_types as $stmt=>$count) { 
+            $x[] = sprintf('%d %s', $count, $stmt);
+        }
+        $box .= lib::trow('database', sprintf('%d total queries; %d rows fetched; %0.6f query execution time; %s', 
+                    DBI::$query_count, DBI::$fetchrow_count, DBI::$query_runtime, join(', ', $x)));
 
         global $dbh;
 
