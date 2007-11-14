@@ -58,10 +58,10 @@ abstract class base_controller {
         }
         if (is_array($this->allowed_methods)) {
             if (!in_array($method, $this->allowed_methods)) {
-                throw new HTTPUnauthorized();
+                throw new HTTPUnauthorized('niam');
             }
         } elseif (! $this->allowed_methods ) {
-            throw new HTTPUnauthorized();
+            throw new HTTPUnauthorized('amif');
         }
         if (!$method) {
             throw new HTTPNotFound(get_class($this).'::'.$method.' not found');
