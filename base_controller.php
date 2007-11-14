@@ -138,6 +138,8 @@ abstract class base_controller {
                 $content_type .= '; charset="UTF-8"';
             }
             header("Content-type: ".$content_type);
+            header("X-DB-Stats: ".lib::dbstats());
+            header("X-Runtime: ".lib::runtime());
             $this->view->display($viewfile);
         } else {
             return $this->view->fetch($viewfile);
