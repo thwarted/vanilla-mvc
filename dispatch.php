@@ -71,6 +71,11 @@ try {
 
     $controller->_render();
 
+    # FIXME this really needs to be better integrated
+    if (function_exists('post_render_hook')) {
+        post_render_hook($request);
+    }
+
 } catch(HTTPException $e) {
 
     header("HTTP/1.1 ".$e->getCode().' '.$e->getMessage());
