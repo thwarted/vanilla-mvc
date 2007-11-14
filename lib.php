@@ -127,6 +127,8 @@ class lib {
         $_SERVER['endtime'] = microtime(true);
         $runtime = $_SERVER['endtime'] - $_SERVER['starttime'];
         $box .= lib::trow('execution time', sprintf('%0.6f sec', $runtime));
+        $box .= lib::trow('database', sprintf('%d total queries, %d rows fetched, %0.6f query execution time', 
+                    DBI::$query_count, DBI::$fetchrow_count, DBI::$query_runtime));
 
         global $dbh;
 
