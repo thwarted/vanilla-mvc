@@ -47,6 +47,19 @@ class SchemaDatabase {
         }
     }
 
+    public function init($dbhandle) {
+        # to be called after being unserialized
+        # FIXME use __wakeup() here?
+        $this->dbhandle = $dbhandle;
+        foreach ($this->builtclasses as $tn=>$code) {
+            eval($code);
+        }
+        foreach ($this->setupcode as $tn=>$code) {
+            $ST = $this->tables[$tn];
+            eval($code);
+        }
+    }
+
     private function ___find_tables_build_models($options) {
 
         $ignore = @ $options['ignore'];
@@ -71,7 +84,7 @@ class SchemaDatabase {
             }
             $code = sprintf('%s::$__table__ = $ST;', $tn);
             eval($code);
-            $this->setupcode[] = $code;
+            $this->setupcode[$tn] = $code;
         }
 
         /*
