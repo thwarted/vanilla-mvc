@@ -52,7 +52,9 @@ class SchemaDatabase {
         # FIXME use __wakeup() here?
         $this->dbhandle = $dbhandle;
         foreach ($this->builtclasses as $tn=>$code) {
-            eval($code);
+            if (!class_exists($tn)) {
+                eval($code);
+            }
         }
         foreach ($this->setupcode as $tn=>$code) {
             $ST = $this->tables[$tn];
