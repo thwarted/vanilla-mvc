@@ -42,6 +42,8 @@ class ModelCollection implements Countable, ArrayAccess, Iterator {
     }
 
     public function save() {
+        #error_log("skipping save of collection type ".$this->ofclass." for ".$this->ownerobj->labelx());
+        /*
         global $_generation;
 
         $start_generation = $_generation;
@@ -51,10 +53,11 @@ class ModelCollection implements Countable, ArrayAccess, Iterator {
         if ($_generation === $this->_generation) {
             return;
         }
-        error_log("saving collection of type ".$this->ofclass);
+        error_log("saving collection of type ".$this->ofclass." for ".$this->ownerobj->labelx());
         if ($start_generation != $_generation) {
             $_generation = false;
         }
+        */
     }
 
     public function walk($callback /* .... */ ) {
@@ -63,12 +66,16 @@ class ModelCollection implements Countable, ArrayAccess, Iterator {
         call_user_func_array('walk', $a);
     }
 
-    public function dump() {
+    public function dump($deep=0) {
         $r = array('collection-of'=>$this->ofclass);
         $pk = $this->_t->pk;
         foreach ($this as $v) {
             $x = sprintf('%s(%s=%d)', $this->ofclass, $pk, $v->$pk);
-            $r[$v->$pk] = $x;
+            if ($deep) {
+                $r[$x] = $v->dump();
+            } else {
+                $r[$v->$pk] = $x;
+            }
         }
         foreach ($this->pendingdel as $v) {
             $r["deleted-".$v->$pk] = sprintf('%s(%s=%d)', $this->ofclass, $pk, $v->$pk);
