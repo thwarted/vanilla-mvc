@@ -265,9 +265,16 @@ class form_input_password extends formfield {
 class form_input_checkbox extends formfield {
     private $_value_when_checked;
 
+    /*
     public function __construct($name, $value=NULL, $attr=array()) {
         parent::__construct($name, '', $attr);
         $this->_value_when_checked = $value;
+    }
+    */
+
+    public function value_when_checked($v=1) {
+        $this->_value_when_checked = trim($v);
+        return $this;
     }
 
     public function html() {
