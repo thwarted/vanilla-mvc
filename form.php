@@ -277,6 +277,13 @@ class form_input_checkbox extends formfield {
         return $this;
     }
 
+    public function submitted_value($v=NULL) {
+        if (!isset($v)) {
+            $v = '';
+        }
+        parent::submitted_value($v);
+    }
+
     public function html() {
         $checked = '';
         if ($this->value()) {
