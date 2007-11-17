@@ -538,12 +538,18 @@ class form implements Countable, ArrayAccess, Iterator {
 
         }
 
-        if (!empty($this->_datasource[$name]) && is_array($this->_datasource[$name])) {
-            $this->_data = $this->_datasource[$name];
-            $this->_datasource[$name.'-consumed'] = $this->_datasource[$name];
-            unset($this->_datasource[$name]);
+        if (!empty($name)) {
+            if (!empty($this->_datasource[$name]) && is_array($this->_datasource[$name])) {
+                $this->_data = $this->_datasource[$name];
+                $this->_datasource[$name.'-consumed'] = $this->_datasource[$name];
+                unset($this->_datasource[$name]);
+            } else {
+                $this->_data = false;
+            }
         } else {
-            $this->_data = false;
+            if (is_array($this->_datasource)) {
+                $this->_data = $this->_datasource;
+            }
         }
 
     }
