@@ -238,10 +238,13 @@ class Model {
         $this->_generation = $_generation;
         $this->pre_save();
         if ($this->_is_new_row()) {
-            $this->_save_insert();
+            $chgcols = $this->_save_insert();
         } else {
-            $this->_save_update();
+            $chgcols = $this->_save_update();
             $this->_save_virtuals();
+        }
+        if (!$chgcols) {
+            error_log("no changes in save of ".$this->labelx());
         }
         if ($start_generation != $_generation) {
             $_generation = false;
@@ -273,6 +276,7 @@ class Model {
             $sth->execute($a);
             $this->checkpoint();
         }
+        return count($c);
     }
 
     private function _is_new_row() {
@@ -337,6 +341,7 @@ class Model {
             }
             $this->checkpoint();
         }
+        return count($c);
     }
 
     /*
