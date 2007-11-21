@@ -33,6 +33,8 @@ class ModelCollection implements Countable, ArrayAccess, Iterator {
     private $ofclass = NULL;
     private $members = array();
     private $pendingdel = array();
+    private $sortby = NULL;
+    private $sortsense = NULL;
 
     public function __construct($ofclass, $owner, $dbase) {
         $this->ofclass = $ofclass;
@@ -64,6 +66,31 @@ class ModelCollection implements Countable, ArrayAccess, Iterator {
         $a = func_get_args();
         array_unshift($a, $this);
         call_user_func_array('walk', $a);
+    }
+
+    public function sort($field) {
+        $this->sortby = $field;
+        $this->sortsense = 1;
+        usort($this->members, array($this, '_sort'));
+        $this->sortby = NULL;
+    }
+
+    public function rsort($field) {
+        $this->sortby = $field;
+        $this->sortsense = -1;
+        usort($this->members, array($this, '_sort'));
+        $this->sortby = NULL;
+    }
+
+    public function _sort($a, $b) {
+        $f = $this->sortby;
+        if ($a->$f === $b->$f) {
+            return 0;
+        }
+        if ($this->sortsense == 1) {
+            return ($a->$f < $b->$f) ? -1 : 1;
+        }
+        return ($a->$f > $b->$f) ? -1 : 1;
     }
 
     public function dump($deep=0) {
