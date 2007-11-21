@@ -145,6 +145,9 @@ class DBIstatement {
                         throw new DBIException(":join named parameter ($k) specified for non-array value");
                     }
                 }
+                if (is_array($v)) {
+                    throw new DBIException("query value is is an array");
+                }
                 $stmt = preg_replace($re, $v, $stmt);
             }
             /* slight chance that the ?:\w+ string could appear in a quoted string */
