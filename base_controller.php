@@ -69,9 +69,9 @@ abstract class base_controller {
         $r = array();
         foreach ($req as $v) {
             if (preg_match('/^(\w+)=(.*)$/', $v, $m)) {
-                $this->extraargs[$m[1]] = urldecode($m[2]);
+                $this->extraargs[$m[1]] = $m[2];
             } else {
-                $r[] = trim(urldecode($v));
+                $r[] = trim($v);
             }
         }
         # all protected and public methods are accessible

@@ -30,9 +30,9 @@ class lib {
         $request = preg_replace('@\?.*$@', '', $request);
         $request = preg_replace('@/+@', '/', $request);
         $_SERVER['urirequest'] = $_SERVER['uribase'].$request;
-        $request = preg_replace('@^/+@', '', preg_replace('@/+$@', '', $request));
+        $request = trim($request, '/');
         if ($request) {
-            $request = explode('/', $request);
+            $request = explode('/', urldecode($request));
         } else {
             if (!isset($_SERVER['default_controller'])) {
                 throw new Exception("default controller not specified");
@@ -228,7 +228,7 @@ class lib {
         }
         error_log($msg);
         if ($html) {
-            $msg = preg_replace("/\n/", "<br/>", $msg);
+            $msg = preg_replace("/\n/", "<br />", $msg);
             print "<h2>".get_class($e)." (code $code)</h2><tt>$msg</tt>\n";
         } else {
             print get_class($e)." (code $code)\n$msg\n";
@@ -267,7 +267,7 @@ class lib {
 }
 
 function url() {
-    $o = array(preg_replace('@/$@', '', $_SERVER['uribase']));
+    $o = array(rtrim($_SERVER['uribase'], '/'));
     $c = array_values_recursive(func_get_args());
     if (is_array($_SERVER['default_controller']) && $c === $_SERVER['default_controller']) {
         return $_SERVER['uribase'];
@@ -287,7 +287,7 @@ function url() {
         } elseif (empty($i)) {
             continue;
         }
-        $o[] = preg_replace('@^/@', '', preg_replace('@/$@', '', $i));
+        $o[] = trim($i, '/');
     }
     if (count($o) == 1) {
         $o[] = '';
