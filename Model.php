@@ -244,7 +244,7 @@ class Model {
             $this->_save_virtuals();
         }
         if (!$chgcols) {
-            error_log("no changes in save of ".$this->labelx());
+            #error_log("no changes in save of ".$this->labelx());
         }
         if ($start_generation != $_generation) {
             $_generation = false;

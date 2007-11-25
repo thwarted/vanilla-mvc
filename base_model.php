@@ -424,7 +424,7 @@ class base_model {
         $sth->execute_array($a);
         $r = array();
         while($o = $sth->fetchrow_object($class)) {
-            $r[] = _object_cache::singleton($class, $o->$PK, $o);
+            $r[] = _object_cache::singleton($o, $o->$PK, $class);
         }
         return $r;
     }
@@ -453,7 +453,7 @@ class base_model {
         $r = array();
         $class = get_class($this);
         while($o = $sth->fetchrow_object($class)) {
-            $r[] = _object_cache::singleton($class, $o->$PK, $o);
+            $r[] = _object_cache::singleton($o, $o->$PK, $class);
         }
         return $r;
     }

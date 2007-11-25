@@ -17,7 +17,17 @@
 class _object_cache {
     static $cache = array();
 
-    public static function singleton($class, $id, $o) {
+    public static function singleton($o, $id=NULL, $class=NULL) {
+        if (!is_object($o) || !($o instanceof Model)) {
+            throw new Exception("trying to get singleton of non-Model instance");
+        }
+        if (!isset($class)) {
+            $class = get_class($o);
+        }
+        if (!isset($id)) {
+            $PK = eval('$x = '.$class.'::$__table__; return $x->pk;');
+            $id = $o->$PK;
+        }
         if ($x = _object_cache::get($class, $id)) {
             return $x;
         } else {

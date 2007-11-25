@@ -124,7 +124,7 @@ class SchemaTable {
         $PK = $this->pk;
         $class = $this->name;
         while($o = $sth->fetchrow_object($class)) {
-            $o = _object_cache::singleton($class, $o->$PK, $o);
+            $o = _object_cache::singleton($o, $o->$PK, $class);
             $o->checkpoint();
             $r[] = $o;
         }
