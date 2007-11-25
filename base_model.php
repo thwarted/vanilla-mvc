@@ -20,6 +20,68 @@ define('ReferringField', 2);
 define('VirtualField', 4);
 define('IsForeign', 8);
 
+class _model_data {
+    static public $table = array();
+    static public $primary_key = array();
+    static public $primary_key_is_foreign = array();
+
+    # create table house (
+    #    id
+    #    family_id
+    # )
+    #
+    # create table rooms (
+    #    id
+    #    name
+    # )
+    # 
+    # create house_rooms (
+    #    house_id
+    #    room_id
+    # )
+    #
+    # create table family (
+    #    id
+    # )
+    #
+    # create table child (
+    #    id
+    #    family_id
+    # )
+    #
+    # house belongs_to family by family_id
+    # family has_one house by family_id
+    # 
+    # house has_many room through house_rooms
+
+    # family::has_one(house) => house.family_id references family.id
+    # family is referenced by house
+    # family->house is created
+    static public $has_one = array();
+
+    # house::belongs_to(family) => house.family_id references family.id
+    # house references a family
+    # house->family is created
+    # child::belongs_to(family) => child.family_id references family.id
+    # child references a family
+    # child->family is created
+    static public $belongs_to = array();
+
+    # family::has_many(child) => child.family_id references family.id
+    # family->child is created as an array()
+    static public $has_many = array();
+
+    # TODO
+    # product::has_many_through('image', 'product_image', 'product_id')
+    #   => product.id => product_image.product_id, product_image.image_id = image.id
+    # product->image = array(of image)
+    #static public $has_many_through = array();
+
+    static public $virtual_fields = array();
+
+    static public $fieldlist = array();
+}
+
 class base_model {
     protected $__members = array();
     protected $__original_values = array();
