@@ -134,7 +134,7 @@ class lib {
         if (!lib::client_is_internal_host()) {
             return '';
         }
-        $box = "<div id='debugbox' style='clear: both; margin-top: 8em; padding: 4em 0.5em 0px 0.5em;'>";
+        $box = "<div id='debugbox' style='clear: both; margin-top: 8em; margin-bottom: 2em; padding: 4em 0.5em 0px 0.5em;'>";
 
         $box .= "<table width='100%' border='1' rules='all' cellpadding='4'>\n";
 
@@ -142,6 +142,10 @@ class lib {
         $box .= lib::trow('execution time', $_SERVER['runtime']);
         $dbstats = lib::dbstats();
         $box .= lib::trow('database', $dbstats);
+
+        ob_start(); print_r($_SESSION); $msg = ob_get_contents(); ob_end_clean();
+        $msg = preg_replace('/(^Array\n\(|\n\)$)/', '', $msg);
+        $box .= lib::trow('session', "<pre style='margin: 0px; padding: 0px;'>$msg</pre>");
 
         global $dbh;
 
