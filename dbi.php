@@ -146,7 +146,7 @@ class DBIstatement {
                     }
                 }
                 if (is_array($v)) {
-                    throw new DBIException("query value is is an array");
+                    throw new DBIException("query value is an array");
                 }
                 $stmt = preg_replace($re, $v, $stmt);
             }

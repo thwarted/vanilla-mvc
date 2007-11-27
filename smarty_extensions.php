@@ -116,7 +116,7 @@ class smarty_extensions {
             $v = preg_replace("/($attrname=['\"]?)([^'\"]+)(['\"]?)/", "$attrname=\"$attrvalue\"", $v);
         } else {
             # add new
-            if (preg_match('/<(\w+)\s+(.+)>$/', $v, $m)) {
+            if (preg_match('/^<(\w+)\s+(.+)>$/s', $v, $m)) {
                 list($all, $pre, $post) = $m;
                 $v = "<$pre $attrname=\"$attrvalue\" $post>";
             }
