@@ -132,6 +132,8 @@ class SchemaTable {
     }
 
     public function find_first($cond) {
+        # FIXME optimize this by checking if $cond is an integer
+        # and seeing if the object already exists in _object_cache
         $x = $this->find($cond, 1);
         if (empty($x)) return NULL;
         return $x[0];
