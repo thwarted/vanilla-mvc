@@ -85,7 +85,7 @@ class formfield {
 
     public function value($submitted_value = NULL) {
         if (isset($submitted_value)) {
-            $this->_value = trim($submitted_value);
+            $this->_value = is_string($submitted_value) ? trim($submitted_value) : $submitted_value;
         }
         if (!isset($this->_value)) {
             return $this->_defaultvalue;
@@ -132,6 +132,10 @@ class formfield {
             throw new Exception("$fc is not callable");
         }
         return $this;
+    }
+
+    public function is_valid() {
+        return $this->_valid;
     }
 
     public function verify() {
