@@ -138,9 +138,17 @@ abstract class base_controller {
                 $content_type .= '; charset="UTF-8"';
             }
             header("Content-type: ".$content_type);
-            header("X-DB-Stats: ".lib::dbstats());
-            header("X-Runtime: ".lib::runtime());
-            $this->view->display($viewfile);
+            if (empty($_SERVER['buffer_rendering'])) {
+                header("X-DB-Stats: ".lib::dbstats());
+                header("X-Runtime: ".lib::runtime());
+                $this->view->display($viewfile);
+            } else {
+                ob_start();
+                $this->view->display($viewfile);
+                header("X-DB-Stats: ".lib::dbstats());
+                header("X-Runtime: ".lib::runtime());
+                ob_end_flush();
+            }
         } else {
             return $this->view->fetch($viewfile);
         }

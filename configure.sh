@@ -155,6 +155,16 @@ $_SERVER['allowed_dynamic_media'] = array('js', 'css');
 # extensions in order to be found
 $_SERVER['all_views_media_paths'] = array('media/css', 'media/js');
 
+# set this to true to use output buffering when rendering the
+# template.  at the expensive of memory, this may make the page
+# _seem_ to appear quicker (since fewer reflows will be necessary
+# by the browser).  additionally, database and run-time stats
+# in the HTTP headers will be more accurate
+$_SERVER['buffer_rendering'] = true;
+
+# set this to true to see all SQL queries in the debug box
+$_SERVER['debugsql'] = false;
+
 EOF
 fi
 
