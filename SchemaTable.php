@@ -75,7 +75,7 @@ class SchemaTable {
             $where = sprintf('%s.%s = ?:id', $this->nameQ, $this->pk);
         } elseif (is_array($cond)) {
             # where clause and an array of substitutions
-            if (count($cond) == 2 && is_string($cond[0]) && is_array($cond[1])) {
+            if (count($cond) == 2 && isset($cond[0]) && isset($cond[1]) && is_string($cond[0]) && is_array($cond[1])) {
                 $where = $cond[0];
                 $a = $cond[1];
             } else {
@@ -87,7 +87,12 @@ class SchemaTable {
                     if (preg_match('/^\w+$/', $f)) {
                         $f = $this->db->dbhandle->quote_label($f);
                     }
-                    $where[] = sprintf('%s = ?:%s', $f, $x);
+                    if (is_array($v)) {
+                        $x .= ":join";
+                        $where[] = sprintf('%s in (?:%s)', $f, $x);
+                    } else {
+                        $where[] = sprintf('%s = ?:%s', $f, $x);
+                    }
                     $a[$x] = $v;
                 }
                 $where = join(' and ', $where);
@@ -119,7 +124,7 @@ class SchemaTable {
         }
         $sth = $this->db->dbhandle->prepare($q);
         $sth->execute($a);
-        #error_log($sth->_stmt());
+        error_log($sth->_stmt());
         $r = array();
         $PK = $this->pk;
         $class = $this->name;
