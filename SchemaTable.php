@@ -124,7 +124,7 @@ class SchemaTable {
         }
         $sth = $this->db->dbhandle->prepare($q);
         $sth->execute($a);
-        error_log($sth->_stmt());
+        #error_log($sth->_stmt());
         $r = array();
         $PK = $this->pk;
         $class = $this->name;
