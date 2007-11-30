@@ -291,7 +291,7 @@ class Model {
         return !($c);
     }
 
-    private function _save_virtuals() {
+    protected function _save_virtuals() {
         $TB = $this->_t;
         foreach ($TB->virtual as $f=>$cinfo) {
             # going to recurse infinitely here 
