@@ -706,13 +706,15 @@ class form implements Countable, ArrayAccess, Iterator {
             if (is_array($this->_data)) { # if the form was actually submitted
                 if ($value instanceof form_fileupload) {
                     $fn = $this->name();
-                    $a = array('name'=>$_FILES[$fn]['name'][$fieldname],
-                               'type'=>$_FILES[$fn]['type'][$fieldname],
-                               'tmp_name'=>$_FILES[$fn]['tmp_name'][$fieldname],
-                               'error'=>$_FILES[$fn]['error'][$fieldname],
-                               'size'=>$_FILES[$fn]['size'][$fieldname]
-                              );
-                    $this->_data[$fieldname] = $a;
+                    if (isset($_FILES[$fn]) && is_array($_FILES[$fn])) {
+                        $a = array('name'=>$_FILES[$fn]['name'][$fieldname],
+                                   'type'=>$_FILES[$fn]['type'][$fieldname],
+                                   'tmp_name'=>$_FILES[$fn]['tmp_name'][$fieldname],
+                                   'error'=>$_FILES[$fn]['error'][$fieldname],
+                                   'size'=>$_FILES[$fn]['size'][$fieldname]
+                                  );
+                        $this->_data[$fieldname] = $a;
+                    }
                 }
                 $value->submitted_value(isset($this->_data[$fieldname]) ? $this->_data[$fieldname] : NULL);
             }
