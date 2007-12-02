@@ -20,7 +20,6 @@ class Model {
     protected $_generation;
     protected $_t;
     protected $_db;
-    protected $__db;
     protected $__members = array();
     protected $__virtmembers = array();
     protected $__original = array();
@@ -42,11 +41,6 @@ class Model {
             $pkv = '?';
         }
         return sprintf('%s(%s=%s)', get_class($this), $pk, $pkv);
-    }
-
-    public function _from_database($x) {
-        throw new Exception("don't call _from_database");
-        $this->__db = $x;
     }
 
     public function _refresh() {
@@ -373,6 +367,13 @@ class Model {
         $code = 'return '.$modelclass.'::$__table__;';
         $o = eval($code);
         return call_user_func_array(array($o, 'find_first'), $a);
+    }
+
+    public static function find_with() {
+        $modelclass = self::_find_static_invoking_class();
+        $a = func_get_args();
+        $o = eval('return '.$modelclass.'::$__table__;');
+        return call_user_func_array(array($o, 'find_with'), $a);
     }
 
     # oh my fucking god
