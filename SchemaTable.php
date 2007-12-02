@@ -41,19 +41,19 @@ class SchemaTable {
         }
         foreach ($this->virtual as $f=>$c) {
             if ($c->source) {
-                $l = sprintf("   %s %s\n         by key (self).%s", $c->nameQ, $c->class, $c->source);
+                $l = sprintf("   %s %s (virtual)\n         by key (self).%s", $c->nameQ, $c->class, $c->source);
             } elseif ($c->collectionsql) {
                 # see ONE-OR-MANY-CHECK in Model.php
-                $l = sprintf("   %s collection of %s\n         by query %s", $c->nameQ, $c->class, $c->collectionsql);
+                $l = sprintf("   %s collection of %s (virtual)\n         by query %s", $c->nameQ, $c->class, $c->collectionsql);
             } else {
-                $l = sprintf('   %s is UNKNOWN', $c->nameQ);
+                $l = sprintf('   %s is UNKNOWN (virtual)', $c->nameQ);
             }
             $x[$c->nameQ] = $l;
         }
         return "table ".$this->name."\n".join("\n", $x)."\n";
     }
 
-    private function ___collist($tabalias=NULL, $fullcolalias=false) {
+    public function ___collist($tabalias=NULL, $fullcolalias=false) {
         if (!isset($tabalias)) {
             $tabalias = $this->nameQ;
         }
@@ -61,11 +61,11 @@ class SchemaTable {
         foreach ($this->columns as $name=>$column) {
             $x = sprintf('%s.%s', $tabalias, $column->nameQ);
             if ($fullcolalias) {
-                $x .= " as ".$this->db->dbhandle->quote_label('_'.$this->name.'___'.$column->name);
+                $x .= " as ".$this->db->dbhandle->quote_label($this->name.'.'.$column->name);
             }
             $r[] = $x;
         }
-        return join(', ', $r);
+        return join(",\n", $r);
     }
 
     public function _conditions_to_query($cond) {
@@ -142,6 +142,67 @@ class SchemaTable {
         $x = $this->find($cond, 1);
         if (empty($x)) return NULL;
         return $x[0];
+    }
+
+    # FIXME this function is unfinished
+    # generates the proper query, but the result columns will need to be parsed
+    # out to generate the main object and the subobjects and do the assignments
+    # also, there is most likely no easy way to load collections in-line 
+    # 
+    # WARNING: only known to work on subclasses accessible through a field named
+    # as the subclass; that is user.address_id will be used to pull in
+    # address (if given in $subclasses), but user.secondary_address_id will not
+    public function find_with($subclasses, $cond, $limit=NULL, $orderby=NULL) {
+        if (empty($cond)) return array();
+
+        if (!empty($limit) && !preg_match('/^\d+(,\d+)?$/', $limit)) {
+            # FIXME report a better error here
+            error_log("invalid limit $limit");
+            return array();
+        }
+        if (!is_array($subclasses)) $subclasses = array($subclasses);
+        $tcols = array();
+        foreach ($subclasses as $s) {
+            if (!isset($this->virtual[$s])) {
+                throw new Exception("$s is not referenced from ".$this->name.", unable to join");
+            }
+            print_r($this->virtual[$s]->dump());
+            $tname = $this->virtual[$s]->class;
+            $tableobj = $this->db->tables[$tname];
+            $tcols[$tname] = $tableobj->___collist(NULL, $fullalias=true);
+        }
+
+        list($where, $a) = $this->_conditions_to_query($cond);
+
+        $q = "select ".$this->___collist(NULL, $fullalias=true).",\n".join(",\n", $tcols)."\nfrom ".$this->nameQ;
+        $nQ = $this->db->tables[$this->name]->nameQ;
+        foreach ($tcols as $tname=>$x) {
+            $tQ = $this->db->tables[$this->virtual[$tname]->class]->nameQ;
+            $tpk = $this->db->tables[$this->virtual[$tname]->class]->pk;
+            $source = $nQ.'.'.$this->db->dbhandle->quote_label($this->virtual[$tname]->source);
+            $q .= "\n     left join $tQ on $source = $tQ.$tpk";
+        }
+        $q .= "\nwhere $where";
+        if ($limit) {
+            $q .= " limit $limit";
+        }
+        if (isset($orderby)) {
+            $q .= " order by $orderby";
+        }
+
+        $sth = $this->db->dbhandle->prepare($q);
+        $sth->execute($a);
+        $r = array();
+        $PK = $this->pk;
+        $class = $this->name;
+        while($x = $sth->fetchrow_hashref()) {
+            # FIXME unfinished
+            # expand results into individual objects
+            # assign subobjects to main object
+            # store the objects in the _object_cache
+            # add to $r
+        }
+        return $r;
     }
 
     public function ___find_columns() {
