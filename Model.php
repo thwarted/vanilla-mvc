@@ -400,7 +400,7 @@ class Model {
             }
             if (preg_match($rx='/\b(\w+)::'.$method.'\(/', $line, $m)) {
                 $target = $m[1];
-                if ($target === 'parent') {
+                if ($target === 'parent' || $target === 'self') {
                     # the actually call is through parent::find
                     # so search backward through the file looking for a class XXX line
                     # thankfully, PHP doesn't allow nested classes
