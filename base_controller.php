@@ -40,17 +40,17 @@ abstract class base_controller {
         if (!$req || !is_array($req)) {
             $req = array('index'); # default method name
         }
-        $m = array_shift($req);
-        if (preg_match('/\W/', $m)) {
+        $findmethod = array_shift($req);
+        if (preg_match('/\W/', $findmethod)) {
             throw new HTTPNotFound('illegal characters in method');
         }
-        if (preg_match('/^_/', $m)) {
+        if (preg_match('/^_/', $findmethod)) {
             # FIXME could throw HTTPNotFound here, to avoid 
             # leaking information about the implementation
             throw new HTTPUnauthorized();
         }
         $method = false;
-        foreach (array($m, $m.'_') as $trym) {
+        foreach (array($findmethod, $findmethod.'_', 'default_') as $trym) {
             if (method_exists($this, $trym)) {
                 $method = $trym;
                 break;
@@ -75,6 +75,10 @@ abstract class base_controller {
             }
         }
         # all protected and public methods are accessible
+        if ($method === 'default_') {
+            # NOTE if default_ is called, the method-name argument is not consumed
+            array_unshift($r, $findmethod);
+        }
         call_user_func_array(array($this, $method), $r);
     }
 
