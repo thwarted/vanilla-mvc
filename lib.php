@@ -134,6 +134,9 @@ class lib {
         if (!lib::client_is_internal_host()) {
             return '';
         }
+        if (lib::$debugboxshown) {
+            return '';
+        }
         $box = "<div id='debugbox' style='clear: both; margin-top: 8em; margin-bottom: 2em; padding: 4em 0.5em 0px 0.5em;'>";
 
         $box .= "<table width='100%' border='1' rules='all' cellpadding='4'>\n";
