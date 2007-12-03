@@ -17,6 +17,9 @@
 function invoke_controller($request) {
 
     $controller = array_shift($request);
+    if (preg_match('/\.(html?|txt)$/', $controller) && !$request) {
+        $controller = preg_replace('/\./', '_', $controller);
+    }
     if (preg_match('/\W/', $controller)) {
         throw new HTTPNotFound('illegal characters in controller name (1)');
     }
