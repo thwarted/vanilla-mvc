@@ -14,6 +14,28 @@
  * limitations under the License.
  */
 
+class cond {
+    public $op;
+    public $val;
+
+    public function __construct($op, $val) {
+        $this->op = $op;
+        $this->val = $val;
+    }
+    public function expr() {
+        $x = call_user_func(array($this, $this->op."_expr"), uniqid());
+        return $x;
+    }
+
+    public static function in() { $x = func_get_args(); return new cond('in', array_values_recursive($x)); }
+    private function in_expr($l) { return array("in (?:$l:join)", array("$l:join"=>$this->val)); }
+    public static function equal($x) { return new cond('in', $x); }
+    private function equal_expr($l) { return array("= ?:$l", array($l=>$this->val)); }
+    public static function between($x, $y) { return new cond('between', array('min'=>$x, 'max'=>$y)); }
+    private function between_expr($l) { return array("between ?:min$l and ?:max$l", array("min$l"=>$this->val['min'], "max$l"=>$this->val['max'])); }
+}
+
+
 class SchemaTable {
     public $db;
     public $name;
@@ -90,10 +112,17 @@ class SchemaTable {
                     if (is_array($v)) {
                         $x .= ":join";
                         $where[] = sprintf('%s in (?:%s)', $f, $x);
+                        $a[$x] = $v;
+                    } elseif (is_object($v) && $v instanceof cond) {
+                        list($expr, $vs) = $v->expr();
+                        $where[] = sprintf('%s %s', $f, $expr);
+                        foreach ($vs as $k=>$x) {
+                            $a[$k] = $x;
+                        }
                     } else {
                         $where[] = sprintf('%s = ?:%s', $f, $x);
+                        $a[$x] = $v;
                     }
-                    $a[$x] = $v;
                 }
                 $where = join(' and ', $where);
             }
@@ -103,7 +132,7 @@ class SchemaTable {
         return array($where, $a);
     }
 
-    public function find($cond=NULL, $limit=NULL) {
+    public function find($cond=NULL, $limit=NULL, $orderby=NULL) {
         if (empty($cond)) return array();
 
         if (!empty($limit) && !preg_match('/^\d+(,\d+)?$/', $limit)) {
@@ -118,6 +147,9 @@ class SchemaTable {
             $q = $where;
         } else {
             $q = "select ".$this->___collist()." from ".$this->nameQ." where $where";
+        }
+        if ($orderby) {
+            $q .= " order by ".$orderby;
         }
         if ($limit) {
             $q .= " limit $limit";
