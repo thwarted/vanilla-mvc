@@ -98,6 +98,19 @@ class HTTPNotFound extends HTTPException {
         if ($extramsg) $msg .= " ($extramsg)";
         parent::__construct($msg, 404);
     }
+
+    public function body() {
+        try {
+            $c = invoke_controller(array('errorpage'));
+            ob_start();
+            $c->_render($this);
+            $output = ob_get_clean();
+        } catch (Exception $e) {
+            # if there are any errors at all, fall back on inherited functionality
+            $output = parent::body();
+        }
+        return $output;
+    }
 }
 
 
