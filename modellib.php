@@ -68,7 +68,7 @@ class _object_cache {
     }
     
     public static function xflush() {
-        lib::el("flushing all cached objects");
+        #lib::el("flushing all cached objects");
         self::$cache = array();
     }
 }
