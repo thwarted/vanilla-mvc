@@ -391,7 +391,7 @@ class Model {
     }
 
     # oh my fucking god
-    # compile-time resolution of static calls looses the class the method was invoked on
+    # compile-time resolution of static calls loses the class the method was invoked on
     # and apparently this was on purpose!?!
     # http://bugs.php.net/bug.php?id=12622
     #
