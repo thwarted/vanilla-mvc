@@ -111,6 +111,7 @@ class smarty_extensions {
     }
 
     public function modifier_attr($v, $attrname, $attrvalue) {
+        $attrvalue = htmlspecialchars($attrvalue);
         if (preg_match("/$attrname=/", $v)) {
             # replace current ones
             $v = preg_replace("/($attrname=['\"]?)([^'\"]+)(['\"]?)/", "$attrname=\"$attrvalue\"", $v);
