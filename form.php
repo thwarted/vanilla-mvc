@@ -290,10 +290,9 @@ class formfield {
 
 class form_input_text extends formfield {
     public function html() {
-        #$r = sprintf('<input type="text" name="%s" value="%s" ', $this->mkname(), $this->value());
         $r = sprintf('<input type="text" name="%s" ', $this->mkname());
         if (!is_array($this->value())) {
-            $r .= " value=\"".$this->value()."\" ";
+            $r .= " value=\"".htmlspecialchars($this->value())."\" ";
         }
         $r .= $this->render_attributes();
         $r .= ' />';
@@ -303,7 +302,7 @@ class form_input_text extends formfield {
 
 class form_input_hidden extends formfield {
     public function html() {
-        $r = sprintf('<input type="hidden" name="%s" value="%s" />', $this->mkname(), $this->value());
+        $r = sprintf('<input type="hidden" name="%s" value="%s" />', $this->mkname(), htmlspecialchars($this->value()));
         return $r;
     }
 }
@@ -345,7 +344,7 @@ class form_input_checkbox extends formfield {
         if ($this->value()) {
             $checked = 'checked="CHECKED"';
         }
-        $r = sprintf('<input type="checkbox" name="%s" value="%s" %s ', $this->mkname(), $this->_value_when_checked, $checked);
+        $r = sprintf('<input type="checkbox" name="%s" value="%s" %s ', $this->mkname(), htmlspecialchars($this->_value_when_checked), $checked);
         $r .= $this->render_attributes();
         $r .= '/>';
         if ($this->_label) {
@@ -396,7 +395,7 @@ class form_button extends formfield {
     }
 
     public function html_open() {
-        $r = sprintf('<button name="%s" value="%s" ', $this->mkname(), $this->_value_when_clicked);
+        $r = sprintf('<button name="%s" value="%s" ', $this->mkname(), htmlspecialchars($this->_value_when_clicked));
         $r .= $this->render_attributes();
         $r .= '>';
         return $r;
@@ -428,7 +427,7 @@ class form_input_submit extends formfield {
     }
 
     public function html() {
-        $r = sprintf('<input type="submit" name="%s" value="%s" ', $this->mkname(), $this->_value_when_clicked);
+        $r = sprintf('<input type="submit" name="%s" value="%s" ', $this->mkname(), htmlspecialchars($this->_value_when_clicked));
         $r .= $this->render_attributes();
         $r .= '/>';
         return $r;
@@ -476,7 +475,7 @@ class form_input_radio_series extends formfield {
             $iid = $id."_".$c;
             $checked = ($value == $optval ? 'checked="checked"' : '');
             $i = sprintf('<input type="radio" name="%s" id="%s" value="%s" %s /><label for="%s">%s</label>', 
-                                $elmname, $iid, $optval, $checked, $iid, $label);
+                                $elmname, $iid, htmlspecialchars($optval), $checked, $iid, $label);
             $items[] = "   <li>$i</li>\n";
         }
         $r = "<ul style=\"margin-left: -30px; list-style: none;\" id=\"$id\">\n";
@@ -500,7 +499,7 @@ class form_select_series extends form_input_radio_series {
             $iid = $id."_".$c;
             $checked = ($value == $optval ? 'selected="selected"' : '');
             $i = sprintf('<option id="%s" value="%s" %s >%s</option>', 
-                                $iid, $optval, $checked, $label);
+                                $iid, htmlspecialchars($optval), $checked, $label);
             $items[] = "   $i\n";
         }
         $r = "<select name=\"".$this->mkname()."\" id=\"$id\">\n";
