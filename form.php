@@ -769,7 +769,9 @@ class form implements Countable, ArrayAccess, Iterator {
                     }
                 } elseif (isset($this->_data[$fieldname]) && is_array($this->_data[$fieldname])) {
                     # if an array was submitted, it's a multiple_values field; filter out empty values
-                    $this->_data[$fieldname] = array_filter($this->_data[$fieldname]);
+                    #$this->_data[$fieldname] = array_filter($this->_data[$fieldname]);
+                    # FIXME commented out for now, since this causes problems with
+                    # related multiple_values fields with some of them are empty and some are not
                 }
                 $value->submitted_value(isset($this->_data[$fieldname]) ? $this->_data[$fieldname] : NULL);
             }
