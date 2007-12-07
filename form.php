@@ -27,6 +27,7 @@ class formfield {
     protected $_defaultvalue;
     protected $_validationfunc;
     protected $_required;
+    protected $_multiple_values;
     protected $_call_validator_always;
     protected $_originform;
     protected $_errormsg;
@@ -52,7 +53,11 @@ class formfield {
 
     protected function mkname() {
         if (is_object($this->_originform) && $fn = $this->_originform->name()) {
-            return sprintf('%s[%s]', $fn, $this->_name);
+            $x = sprintf('%s[%s]', $fn, $this->_name);
+            if ($this->_multiple_values) {
+                $x .= '[]';
+            }
+            return $x;
         } else {
             return $this->_name;
         }
@@ -63,6 +68,10 @@ class formfield {
         $c = preg_replace('/^form_(input_)?/', '', $c);
         $c = preg_replace('/_series$/', '', $c);
         return $c;
+    }
+
+    public function has_multiple_values() {
+        return $this->_multiple_values;
     }
 
     public function name() {
@@ -119,6 +128,12 @@ class formfield {
         return $this;
     }
 
+    public function multiple_values($r = true) {
+        $r = !!$r; # convert to boolean
+        $this->_multiple_values = $r;
+        return $this;
+    }
+
     public function verify_using($func, $callalways = false) {
         if (is_callable($func)) {
             $this->_validationfunc = $func;
@@ -154,20 +169,50 @@ class formfield {
             }
         }
         if (!isset($this->_valid) || $this->_call_validator_always) {
-            if ($this->_validationfunc) {
-                $r = call_user_func($this->_validationfunc, $this->_value, $this->_name, $this->_originform);
-                if (!is_array($r) || count($r) != 3) {
-                    throw new Exception(var_export($this->_validationfunc, true)." did not return a three element array");
-                }
-                $this->_valid = $r[0] ? true : false; # convert to boolean
-                $this->_value = $r[1];
-                $this->_errormsg = $r[2];
+            if ($this->_multiple_values) {
+                $this->_verify_multiple();
+            } else {
+                $this->_verify_single();
             }
         }
         if (!isset($this->_valid)) {
             $this->_valid = true;
         }
         return $this->_valid;
+    }
+
+    protected function _verify_multiple() {
+        if ($this->_validationfunc) {
+            $this->_valid = true;
+            $errmsg = array();
+            $x = $this->_value;
+            foreach ($x as $k=>$v) {
+                $r = call_user_func($this->_validationfunc, $v, $this->_name, $this->_originform);
+                if (!is_array($r) || count($r) != 3) {
+                    throw new Exception(var_export($this->_validationfunc, true)." did not return a three element array");
+                }
+                if (!$r[0]) {
+                    $this->_valid = false;
+                }
+                $this->_value[$k] = $r[1];
+                if (!empty($r[2])) {
+                    $errmsg[] = $r[2];
+                }
+            }
+            $this->_errormsg = join(', ', $errmsg);
+        }
+    }
+
+    protected function _verify_single() {
+        if ($this->_validationfunc) {
+            $r = call_user_func($this->_validationfunc, $this->_value, $this->_name, $this->_originform);
+            if (!is_array($r) || count($r) != 3) {
+                throw new Exception(var_export($this->_validationfunc, true)." did not return a three element array");
+            }
+            $this->_valid = $r[0] ? true : false; # convert to boolean
+            $this->_value = $r[1];
+            $this->_errormsg = $r[2];
+        }
     }
 
     public function message($newerror = NULL) {
@@ -198,6 +243,9 @@ class formfield {
     }
 
     public function id($newid = NULL) {
+        if ($this->_multiple_values) {
+            return '';
+        }
         if (isset($newid)) {
             $this->_id = $newid;
         }
@@ -242,9 +290,13 @@ class formfield {
 
 class form_input_text extends formfield {
     public function html() {
-        $r = sprintf('<input type="text" name="%s" value="%s" ', $this->mkname(), $this->value());
+        #$r = sprintf('<input type="text" name="%s" value="%s" ', $this->mkname(), $this->value());
+        $r = sprintf('<input type="text" name="%s" ', $this->mkname());
+        if (!is_array($this->value())) {
+            $r .= " value=\"".$this->value()."\" ";
+        }
         $r .= $this->render_attributes();
-        $r .= '/>';
+        $r .= ' />';
         return $r;
     }
 }
@@ -715,6 +767,9 @@ class form implements Countable, ArrayAccess, Iterator {
                                   );
                         $this->_data[$fieldname] = $a;
                     }
+                } elseif (isset($this->_data[$fieldname]) && is_array($this->_data[$fieldname])) {
+                    # if an array was submitted, it's a multiple_values field; filter out empty values
+                    $this->_data[$fieldname] = array_filter($this->_data[$fieldname]);
                 }
                 $value->submitted_value(isset($this->_data[$fieldname]) ? $this->_data[$fieldname] : NULL);
             }
