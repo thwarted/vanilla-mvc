@@ -41,9 +41,6 @@ abstract class base_controller {
             $req = array('index'); # default method name
         }
         $findmethod = array_shift($req);
-        if (preg_match('/\W/', $findmethod)) {
-            throw new HTTPNotFound('illegal characters in method');
-        }
         if (preg_match('/^_/', $findmethod)) {
             # FIXME could throw HTTPNotFound here, to avoid 
             # leaking information about the implementation
@@ -51,6 +48,15 @@ abstract class base_controller {
         }
         $method = false;
         foreach (array($findmethod, $findmethod.'_', 'default_') as $trym) {
+            if (preg_match('/\W/', $trym)) {
+                # illegal characters are okay, since they may be handled by default_
+                # we won't find a method actually named will illegal names anyway
+                # since identifiers can not contain anything other 
+                # than \w (unverified in PHP)
+                # used to throw HTTPNotFound('illegal characters in method')
+                # before we even got to this loop before
+                continue;
+            }
             if (method_exists($this, $trym)) {
                 $method = $trym;
                 break;
