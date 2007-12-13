@@ -68,10 +68,15 @@ class SchemaDatabase {
         if (!$ignore) $ignore = array();
         else $ignore = preg_split('/\s*,\s*/', $ignore);
 
+        $ignorere = @ $options['ignorere'];
+
         $sth = $this->dbhandle->prepare("show tables from ".$this->nameQ);
         $sth->execute();
         while(list($tn) = $sth->fetchrow_array()) {
             if (in_array($tn, $ignore)) continue;
+            if ($ignorere) {
+                if (preg_match($ignorere, $tn)) continue;
+            }
             $ST = new SchemaTable($this, $tn);
             $this->tables[$tn] = $ST;
             if (!class_exists($tn)) {
