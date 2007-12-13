@@ -59,10 +59,10 @@ class _object_cache {
     
     public static function forget($class, $pk=NULL) {
         if (isset($pk)) {
-            lib::el("forgetting all cached $class $pk objects");
+            #lib::el("forgetting all cached $class $pk objects");
             unset(self::$cache[$class][$pk]);
         } else {
-            lib::el("forgetting all cached $class objects");
+            #lib::el("forgetting all cached $class objects");
             self::$cache[$class] = array();
         }
     }
