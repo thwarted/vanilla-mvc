@@ -106,6 +106,7 @@ class HTTPNotFound extends HTTPException {
             $c->_render($this);
             $output = ob_get_clean();
         } catch (Exception $e) {
+            lib::log_exception($e);
             # if there are any errors at all, fall back on inherited functionality
             $output = parent::body();
         }
