@@ -27,6 +27,8 @@ class cond {
         return $x;
     }
 
+    public static function like() { $x = func_get_args(); return new cond('like', array_values_recursive($x)); }
+    private function like_expr($l) { return array("like ?:$l", array($l=>$this->val[0])); }
     public static function in() { $x = func_get_args(); return new cond('in', array_values_recursive($x)); }
     private function in_expr($l) { return array("in (?:$l:join)", array("$l:join"=>$this->val)); }
     public static function equal($x) { return new cond('in', $x); }
