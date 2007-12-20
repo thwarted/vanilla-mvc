@@ -44,6 +44,7 @@ abstract class base_controller {
         if (preg_match('/^_/', $findmethod)) {
             # FIXME could throw HTTPNotFound here, to avoid 
             # leaking information about the implementation
+            d("$findmethod starts with an underscore, not allowed");
             throw new HTTPUnauthorized();
         }
         $method = false;
@@ -64,13 +65,17 @@ abstract class base_controller {
         }
         if (is_array($this->allowed_methods)) {
             if (!in_array($method, $this->allowed_methods)) {
+                d("$method is not in ".get_class($this)."->allowed_methods");
                 throw new HTTPUnauthorized('niam');
             }
         } elseif (! $this->allowed_methods ) {
+            d(get_class($this)."->allowed_methods is false");
             throw new HTTPUnauthorized('amif');
         }
         if (!$method) {
-            throw new HTTPNotFound(get_class($this).'::'.$method.' not found');
+            $msg = get_class($this).'::'.$method.' not found';
+            d($msg);
+            throw new HTTPNotFound($msg);
         }
         $r = array();
         foreach ($req as $v) {
