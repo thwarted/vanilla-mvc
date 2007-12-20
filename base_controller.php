@@ -73,7 +73,7 @@ abstract class base_controller {
             throw new HTTPUnauthorized('amif');
         }
         if (!$method) {
-            $msg = get_class($this).'::'.$method.' not found';
+            $msg = get_class($this).'::'.$findmethod.' not found';
             d($msg);
             throw new HTTPNotFound($msg);
         }
