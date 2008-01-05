@@ -36,11 +36,13 @@ class ModelCollection implements Countable, ArrayAccess, Iterator {
     private $sortby = NULL;
     private $sortsense = NULL;
 
-    public function __construct($ofclass, $owner, $dbase) {
+    public function __construct($ofclass, $owner = NULL, $dbase = NULL) {
         $this->ofclass = $ofclass;
         $this->ownerobj = $owner;
-        $this->_t = $dbase->tables[$ofclass];
-        $this->_db = $dbase;
+        if ($dbase && $dbase instanceof SchemaDatabase) {
+            $this->_t = $dbase->tables[$ofclass];
+            $this->_db = $dbase;
+        }
     }
 
     public function save() {
@@ -60,6 +62,15 @@ class ModelCollection implements Countable, ArrayAccess, Iterator {
             $_generation = false;
         }
         */
+    }
+
+    public function merge($a) {
+        # offsetSet will take care of only adding elements that 
+        # are objects that are instances of this collection's ofclass
+        foreach ($a as $x) {
+            $this[] = $x;
+        }
+        d(sprintf("%d elements merged in to make %d total", count($a), count($this)));
     }
 
     public function walk($callback /* .... */ ) {
