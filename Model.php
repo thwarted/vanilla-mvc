@@ -35,17 +35,17 @@ class Model {
     }
 
     public function cleanup() { # manually called destructor
-           foreach (array_keys($this->__members) as $k) {
-                   unset($this->__members[$k]);
-           }
-           foreach (array_keys($this->__virtmembers) as $k) {
-                   unset($this->__virtmembers[$k]);
-           }
-           foreach (array_keys($this->__original) as $k) {
-                   unset($this->__original[$k]);
-           }
-           unset($this->_db);
-           unset($this->_t);
+        foreach (array_keys($this->__members) as $k) {
+            unset($this->__members[$k]);
+        }
+        foreach (array_keys($this->__virtmembers) as $k) {
+            unset($this->__virtmembers[$k]);
+        }
+        foreach (array_keys($this->__original) as $k) {
+            unset($this->__original[$k]);
+        }
+        unset($this->_db);
+        unset($this->_t);
     }
 
     public function labelx() {
