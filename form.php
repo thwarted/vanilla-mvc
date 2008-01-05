@@ -478,7 +478,8 @@ class form_input_radio_series extends formfield {
                                 $elmname, $iid, htmlspecialchars($optval), $checked, $iid, $label);
             $items[] = "   <li>$i</li>\n";
         }
-        $r = "<ul style=\"margin-left: -30px; list-style: none;\" id=\"$id\">\n";
+        #$r = "<ul style=\"margin-left: -30px; list-style: none;\" id=\"$id\">\n";
+        $r = "<ul id=\"$id\">\n";
         $r .= join('', $items);
         $r .= "\n</ul>\n";
         return $r;
