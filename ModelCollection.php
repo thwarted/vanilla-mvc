@@ -30,7 +30,7 @@ class ModelCollection implements Countable, ArrayAccess, Iterator {
     private $_t;
     private $_db;
     private $ownerobj = NULL;
-    private $ofclass = NULL;
+    public $ofclass = NULL;
     private $members = array();
     private $pendingdel = array();
     private $sortby = NULL;
