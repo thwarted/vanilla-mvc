@@ -35,6 +35,10 @@ class cond {
     private function equal_expr($l) { return array("= ?:$l", array($l=>$this->val)); }
     public static function between($x, $y) { return new cond('between', array('min'=>$x, 'max'=>$y)); }
     private function between_expr($l) { return array("between ?:min$l and ?:max$l", array("min$l"=>$this->val['min'], "max$l"=>$this->val['max'])); }
+    public static function lt($x) { return new cond('lt', array('x'=>$x)); }
+    private function lt_expr($l) { return array("< ?:x$l", array("x$l"=>$this->val['x'])); }
+    public static function gt($x) { return new cond('gt', array('x'=>$x)); }
+    private function gt_expr($l) { return array("> ?:x$l", array("x$l"=>$this->val['x'])); }
 }
 
 
