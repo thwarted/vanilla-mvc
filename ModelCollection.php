@@ -104,6 +104,14 @@ class ModelCollection implements Countable, ArrayAccess, Iterator {
         return ($a->$f > $b->$f) ? -1 : 1;
     }
 
+    public function randomize() {
+        usort($this->members, array($this, '_sortrandom'));
+    }
+
+    public function _sortrandom() {
+        return rand(-1, 1);
+    }
+
     public function dump($deep=0) {
         $r = array('collection-of'=>$this->ofclass);
         $pk = $this->_t->pk;
