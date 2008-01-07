@@ -149,6 +149,20 @@ class formfield {
         return $this;
     }
 
+    public function verified_with() {
+        $x = array();
+        if ($this->_required) {
+            $x[] = "required";
+        }
+        if ($this->_validationfunc) {
+            $x[] = sprintf('%s::%s', $this->_validationfunc[0], $this->_validationfunc[1]);
+            if ($this->_call_validator_always) {
+                $x[] = "always call verifier function";
+            }
+        }
+        return join(', ', $x);
+    }
+
     public function is_valid() {
         return $this->_valid;
     }
