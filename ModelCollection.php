@@ -82,10 +82,13 @@ class ModelCollection extends ModelBase implements Countable, ArrayAccess, Itera
         call_user_func_array('walk', $a);
     }
 
-    public function sort($field) {
+    public function sort($field, $func=null) {
         $this->sortby = $field;
         $this->sortsense = 1;
-        usort($this->members, array($this, '_sort'));
+        if (!isset($func)) {
+            $func = array($this, '_sort');
+        }
+        usort($this->members, $func);
         $this->sortby = NULL;
     }
 
