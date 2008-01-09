@@ -25,10 +25,13 @@ function walk($array, $cb /* ... */ ) {
     }
 }
 
-class ModelCollection implements Countable, ArrayAccess, Iterator {
+class ModelBase {
+    protected $_t;
+    protected $_db;
+}
+
+class ModelCollection extends ModelBase implements Countable, ArrayAccess, Iterator {
     private $_generation;
-    private $_t;
-    private $_db;
     private $ownerobj = NULL;
     public $ofclass = NULL;
     private $members = array();
@@ -157,6 +160,10 @@ class ModelCollection implements Countable, ArrayAccess, Iterator {
 
     public function offsetSet($offset, $value) {
         if (is_object($value) && ($value instanceof $this->ofclass)) {
+            if (!isset($this->_t)) {
+                # assume the table of the first object we're adding
+                $this->_t = $value->_t;
+            }
             if (empty($offset)) {
                 $pk = $this->_t->pk;
                 $offset = $value->$pk;
