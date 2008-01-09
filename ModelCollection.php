@@ -159,8 +159,10 @@ class ModelCollection extends ModelBase implements Countable, ArrayAccess, Itera
     }
 
     public function offsetSet($offset, $value) {
-        if (is_object($value) && ($value instanceof $this->ofclass)) {
+        if (is_object($value) && ($value instanceof $this->ofclass) && ($value instanceof Model)) {
             if (!isset($this->_t)) {
+                # note that $value->_t should be "protected" (see definition of ModelBase)
+                # but we can still read here even though we are not in the same inheritence chain
                 # assume the table of the first object we're adding
                 $this->_t = $value->_t;
             }
