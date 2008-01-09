@@ -32,6 +32,14 @@ class Model extends ModelBase {
         $this->_generation = 0;
     }
 
+    public function natural_members() {
+        return array_keys($this->__members);
+    }
+
+    public function virtual_members() {
+        return array_keys($this->__virtmembers);
+    }
+
     public function cleanup() { # manually called destructor
         foreach (array_keys($this->__members) as $k) {
             unset($this->__members[$k]);
