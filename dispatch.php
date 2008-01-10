@@ -25,6 +25,7 @@ foreach (array('setup', 'models', 'views', 'controllers') as $__x) {
 }
 
 require_once "vanilla/lib.php";
+require_once "vanilla/url.php";
 require_once "vanilla/exceptions.php";
 require_once "vanilla/form.php";
 require_once "vanilla/dbi.php";
