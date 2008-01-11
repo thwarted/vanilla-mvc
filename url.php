@@ -86,7 +86,7 @@ class url implements Countable, ArrayAccess, Iterator {
             $this->absolute = true;
         }
 
-        if (is_array($_SERVER['default_controller']) && $c === $_SERVER['default_controller']) {
+        if (is_array($_SERVER['default_controller']) && $this->path === $_SERVER['default_controller']) {
             $v = $_SERVER['uribase'];
         } else {
             $o = array_values_recursive(array(rtrim($_SERVER['uribase'], '/'), $this->path));
