@@ -135,8 +135,11 @@ class DBIstatement {
                 /* named binding parameters used, but didn't pass an array */
                 throw new DBIException('named binding parameters used, but did not pass an array');
             }
+
+            $search1 = array();
+            $replace1 = array();
             foreach ($this->bindings as $k=>$v) {
-                $re = '/\?:'.preg_quote($k).'/';
+                $search1[] = "?:$k";
                 $v = $this->dbh->quote($v);
                 if (preg_match('/^\w+:join$/', $k)) {
                     if (is_array($v)) {
@@ -148,10 +151,11 @@ class DBIstatement {
                 if (is_array($v)) {
                     throw new DBIException("query value is an array");
                 }
-                $stmt = preg_replace($re, $v, $stmt);
+                $replace1[] = $v;
             }
             /* slight chance that the ?:\w+ string could appear in a quoted string */
             /* if there is a binding they didn't specify, let the SQL parser detect it */
+            $stmt = str_replace($search1, $replace1, $stmt);
         }
         if (!$stmt) {
             /* no statement resulted? */
