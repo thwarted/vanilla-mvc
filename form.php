@@ -649,7 +649,7 @@ class form implements Countable, ArrayAccess, Iterator {
         foreach ($this as $fn=>$o) {
             $x[$fn] = $o->value();
         }
-        return var_export(array('name'=>$this->_name, 'fields'=>$x, 'submitted'=>is_array($this->_data)), true);
+        return array('name'=>$this->_name, 'fields'=>$x, 'submitted'=>is_array($this->_data));
     }
 
     public function method($m) {
