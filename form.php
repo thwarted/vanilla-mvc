@@ -269,7 +269,7 @@ class formfield {
             } else {
                 $ofn = uniqid();
             }
-            $this->_id = sprintf('%s_%s', $ofn, $this->_name);
+            $this->_id = preg_replace('/\W+/', '_', sprintf('%s %s', $ofn, $this->_name));
         }
         return $this->_id;
     }
