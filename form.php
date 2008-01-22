@@ -356,7 +356,7 @@ class form_input_checkbox extends formfield {
     public function html() {
         $checked = '';
         if ($this->value()) {
-            $checked = 'checked="CHECKED"';
+            $checked = 'checked="checked"';
         }
         $r = sprintf('<input type="checkbox" name="%s" value="%s" %s ', $this->mkname(), htmlspecialchars($this->_value_when_checked), $checked);
         $r .= $this->render_attributes();
