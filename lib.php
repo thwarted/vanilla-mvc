@@ -311,14 +311,18 @@ function url() {
 
 function absolute($u) {
     if (!$u) { return $u; }
-    if (preg_match('@^https?://@', $u)) {
-        return $u;
+    if (is_object($u) && ($u instanceof url)) {
+        $u->absolute(true);
+    } else {
+        if (preg_match('@^https?://@', $u)) {
+            return $u;
+        }
+        if (!preg_match('@^/@', $u)) {
+            $u = "/$u";
+        }
+        $secure = isset($_SERVER['HTTPS']) ? 's' : ''; # FIXME verify this CGI var
+        $u = sprintf('http%s://%s%s', $secure, $_SERVER['SERVER_NAME'], $u);
     }
-    if (!preg_match('@^/@', $u)) {
-        $u = "/$u";
-    }
-    $secure = isset($_SERVER['HTTPS']) ? 's' : ''; # FIXME verify this CGI var
-    $u = sprintf('http%s://%s%s', $secure, $_SERVER['SERVER_NAME'], $u);
     return $u;
 }
 
