@@ -323,8 +323,9 @@ class Model extends ModelBase {
         $a = array();
         $x = 1;
         foreach ($TB->columns as $colname=>$cinfo) {
-            if ($colname === $pk && !$cinfo->references) {
+            if ($colname === $pk && !$cinfo->references && !isset($this->__members[$colname])) {
                 # skip if it's the primary key and doesn't reference another table
+                # and it's empty
                 continue;
             }
             if (isset($this->__members[$colname])) {
@@ -332,6 +333,7 @@ class Model extends ModelBase {
                 $a[$colname] = $this->__members[$colname]; # get raw value
             }
         }
+
 
         if (count($a)) {
             # since we're inserting this is going to be true
@@ -347,7 +349,7 @@ class Model extends ModelBase {
             # if primary key is a foreign reference, last_insert_id() is undefined
             # since it is not auto-increment, don't try to update our pk value
             # in that case
-            if (!$pkinfo->references) {
+            if (!$pkinfo->references && !isset($this->__members[$pk])) {
                 $ith = $this->_db->dbhandle->prepare("select last_insert_id()");
                 $ith->execute();
                 list($id) = $ith->fetchrow_array();
