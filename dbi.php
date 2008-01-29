@@ -332,6 +332,20 @@ class DBIdbh {
     public function stats() {
         return sprintf("%d queries, %d rows fetched, %d seconds", DBI::$query_count, DBI::$fetchrow_count, DBI::$query_runtime);
     }
+
+    public function tables() {
+        return $this->dbd->tables();
+    }
+
+    public function table_info($table) {
+        # should take arguments of $cataog, $schema, $table, $type
+        return $this->dbd->table_info($table);
+    }
+
+    public function column_info($table, $column) {
+        # should take arguments of $catalog, $schema, $table, $column
+        return $this->dbd->column_info($table, $column);
+    }
 }
 
 class DBI {
@@ -438,6 +452,27 @@ class DBDmysql extends DBD {
     public function fetch_object($ch) {
         return mysql_fetch_object($ch);
     }
+    public function tables() {
+        $q = mysql_query("show tables", $this->dbres);
+        $r = array();
+        while($x = mysql_fetch_row($q)) {
+            $r[] = $x[0];
+        }
+        mysql_free_result($q);
+        return $r;
+    }
+    public function table_info($table) {
+        $q = mysql_query(sprintf('desc `%s`', $table));
+        $r = array();
+        while ($x = mysql_fetch_assoc($q)) {
+            $r[] = $x;
+        }
+        mysql_free_result($q);
+        return $r;
+    }
+    public function column_info($table, $column) {
+        throw new Exception("unimplmented");
+    }
 }
 
 class DBDsqlite extends DBD {
@@ -542,6 +577,33 @@ class DBDsqlite3 extends DBD {
     }
     public function fetch_object($ch) {
         return $ch->fetch(PDO::FETCH_OBJ);
+    }
+    public function tables() {
+        $c = $this->dbres->prepare("select name from sqlite_master where type = 'table'");
+        $c->execute();
+        $r = array();
+        while($x = $c->fetch(PDO::FETCH_NUM)) {
+            $r[] = $x[0];
+        }
+        return $r;
+    }
+    public function table_info($table) {
+        $c = $this->dbres->prepare("PRAGMA table_info(".$table.")");
+        $c->execute();
+        $r = array();
+        while($x = $c->fetch(PDO::FETCH_ASSOC)) {
+            $x['Field'] = $x['name'];
+            $x['Type'] = $x['type'];
+            $x['Default'] = $x['dflt_value'];
+            $x['Null'] = !($x['notnull']) ? 'YES' : 'NO';
+            $x['Key'] = $x['pk'] ? 'PRI' : '';
+            $x['Extra'] = '';
+            $r[] = $x;
+        }
+        return $r;
+    }
+    public function column_info($table, $column) {
+        throw new Exception("unimplmented");
     }
 }
 
