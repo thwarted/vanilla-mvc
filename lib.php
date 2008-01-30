@@ -271,6 +271,26 @@ class lib {
         return "text/plain";
     }
 
+    static public function load_model_definitions($dir=NULL) {
+        if (!$dir) $dir = "./models";
+
+        # read in all the model files
+        if ($dh = opendir($dir)) {
+            $modfiles = array();
+            while (($mfile = readdir($dh)) !== false) {
+                if (filetype("$dir/$mfile") === 'file' && preg_match('/\.php$/', $mfile)) {
+                    array_push($modfiles, $mfile);
+                }
+            }
+            closedir($dh);
+            sort($modfiles);
+
+            foreach ($modfiles as $mfile) {
+                #error_log($mfile);
+                require_once("$dir/$mfile");
+            }
+        }
+    }
 }
 
 function url() {
