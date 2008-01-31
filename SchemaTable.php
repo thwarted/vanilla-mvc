@@ -1,5 +1,5 @@
 <?php
-/* Copyright 2005-2007 Andrew A. Bakun
+/* Copyright 2005-2008 Andrew A. Bakun
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
