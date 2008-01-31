@@ -70,9 +70,13 @@ class SchemaDatabase {
 
         $ignorere = @ $options['ignorere'];
 
+        /*
         $sth = $this->dbhandle->prepare("show tables from ".$this->nameQ);
         $sth->execute();
         while(list($tn) = $sth->fetchrow_array()) {
+        */
+        $tables = $this->dbhandle->tables();
+        while($tn = array_shift($tables)) {
             if (in_array($tn, $ignore)) continue;
             if ($ignorere) {
                 if (preg_match($ignorere, $tn)) continue;

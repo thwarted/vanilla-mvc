@@ -101,6 +101,9 @@ class SchemaTable {
             # simple integer key
             $a = array('id'=>$cond);
             $where = sprintf('%s.%s = ?:id', $this->nameQ, $this->pk);
+        } elseif (is_string($cond)) { # could be a string primary key (uuid)
+            $a = array('id'=>$cond);
+            $where = sprintf('%s.%s = ?:id', $this->nameQ, $this->pk);
         } elseif (is_array($cond)) {
             # where clause and an array of substitutions
             if (count($cond) == 2 && isset($cond[0]) && isset($cond[1]) && is_string($cond[0]) && is_array($cond[1])) {
@@ -245,9 +248,13 @@ class SchemaTable {
 
     public function ___find_columns() {
 
+        /*
         $sth = $this->db->dbhandle->prepare("desc ".$this->nameQ);
         $sth->execute();
         while($r = $sth->fetchrow_hashref()) {
+        */
+        $tinfo = $this->db->dbhandle->table_info($this->name);
+        while($r = array_shift($tinfo)) {
             $c = new SchemaColumn($this, $r['Field']);
 
             if ($r['Key'] === 'PRI') {
