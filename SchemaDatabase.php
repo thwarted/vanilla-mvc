@@ -63,6 +63,7 @@ class SchemaDatabase {
     }
 
     private function ___find_tables_build_models($options) {
+        $ModelCommonCode = file_get_contents('vanilla/ModelCommonCode.php');
 
         $ignore = @ $options['ignore'];
         if (!$ignore) $ignore = array();
@@ -85,7 +86,7 @@ class SchemaDatabase {
             $this->tables[$tn] = $ST;
             if (!class_exists($tn)) {
                 #error_log("creating class $tn");
-                $code = 'class '.$tn.' extends Model { public static $__table__; }';
+                $code = 'class '.$tn.' extends Model { '.$ModelCommonCode.' }';
                 eval($code);
                 $this->builtclasses[$tn] = $code;
             }
