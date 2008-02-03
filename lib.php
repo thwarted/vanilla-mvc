@@ -150,10 +150,6 @@ class lib {
         $msg = preg_replace('/(^Array\n\(|\n\)$)/', '', $msg);
         $box .= lib::trow('session', "<pre style='margin: 0px; padding: 0px;'>$msg</pre>");
 
-        global $dbh;
-
-        #$box .= lib::trow('database stats', $dbh->stats());
-
         global $__RECMSG;
         if ($__RECMSG) {
             $msg = '<dl style="padding-left: 2em; margin-left: -20px;">';
