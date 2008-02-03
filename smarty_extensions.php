@@ -136,5 +136,23 @@ class smarty_extensions {
         d($v);
     }
 
+    public function modifier_safeattr($v) {
+        $v = preg_replace('/[\s\t\r\n]+/', ' ', preg_replace('/["\'><]/', '', $v));
+        return $v;
+    }
+
+    public function modifier_style($v, $style) {
+        return smarty_extensions::modifier_attr($v, 'style', $style);
+    }
+
+    public function modifier_value($v, $value) {
+        return smarty_extensions::modifier_attr($v, 'value', $value);
+    }
+
+    public function modifier_id($v, $value) {
+        return smarty_extensions::modifier_attr($v, 'id', $value);
+    }
+
+
 }
 
