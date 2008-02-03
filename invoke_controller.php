@@ -14,17 +14,30 @@
  * limitations under the License.
  */
 
+$_SERVER['routes'] = array();
+
 function invoke_controller($request) {
 
     $controller = array_shift($request);
-    if (preg_match('/\.(html?|txt)$/', $controller) && !$request) {
-        $controller = preg_replace('/\./', '_', $controller);
+
+    if (isset($_SERVER['routes'])) {
+        if (isset($_SERVER['routes'][$controller])) {
+            $action = $_SERVER['routes'][$controller];
+            $controller_class = $action['class'];
+            $controller_file = $action['file'];
+        }
     }
-    if (preg_match('/\W/', $controller)) {
-        throw new HTTPNotFound('illegal characters in controller name (1)');
+
+    if (!($controller_file && $controller_class)) {
+        if (preg_match('/\.(html?|txt)$/', $controller) && !$request) {
+            $controller = preg_replace('/\./', '_', $controller);
+        }
+        if (preg_match('/\W/', $controller)) {
+            throw new HTTPNotFound('illegal characters in controller name (1)');
+        }
+        $controller_file = "controllers/$controller.php";
+        $controller_class = "controller_$controller";
     }
-    $controller_file = "controllers/$controller.php";
-    $controller_class = "controller_$controller";
  
     if (!file_exists($controller_file)) {
         throw new HTTPNotFound("controller $controller: file not found");
