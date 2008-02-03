@@ -363,7 +363,7 @@ class DBI {
             # dbi:DriverName:database=database_name;host=hostname;port=port
             if (preg_match('/^dbi:(\w+):(.+)$/', $type, $m)) {
                 $type = $m[1];
-                $ax = split(':', $m[2]);
+                $ax = split(';', $m[2]);
                 $a = array();
                 foreach ($ax as $x) {
                     if (preg_match('/^(\w+)=(.*)$/', $x, $m)) {
