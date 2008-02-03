@@ -6,7 +6,8 @@ public static $__table__;
 # defer these static functions to SchemaTable's definition of them
 # avoid reading the source to figure this out in the definitions
 # on Model
-# see http://bugs.php.net/bug.php?id=30934
+# see http://bugs.php.net/bug.php?id=12622
+#     http://bugs.php.net/bug.php?id=30934
 #     http://bugs.php.net/bug.php?id=30235
 static public function find() {
     $a = func_get_args();
