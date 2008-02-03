@@ -40,7 +40,7 @@
  * NAMED SYNTAX WITH ARRAY JOIN
  *  select col from table where x in (?:xval:join) and y = ?:yval
  *   $x = array('one', 'two', 3);
- *   ->execute(array('xval'=>$x, 'yval'=>10))
+ *   ->execute(array('xval:join'=>$x, 'yval'=>10))
  *     = select col from table where x in ('one', 'two', 3) and y = 10
  *
  */
