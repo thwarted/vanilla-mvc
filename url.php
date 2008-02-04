@@ -24,7 +24,7 @@ class url implements Countable, ArrayAccess, Iterator {
     private $authpass;
 
     public function __construct() {
-        $p = array_values_recursive(func_get_args());
+        $p = func_get_args();
         $this->path($p);
         # FIXME verify this CGI var, only sure for Apache
         $this->secure = isset($_SERVER['HTTPS']);
@@ -35,7 +35,9 @@ class url implements Countable, ArrayAccess, Iterator {
         $p = array_values_recursive(func_get_args());
         $np = array();
         foreach ($p as $pc) {
-            if (is_object($pc)) {
+            if (empty($pc)) {
+                continue;
+            } elseif (is_object($pc)) {
                 $pc = get_class($pc);
                 if (preg_match('/^controller_(\w+)$/', $pc, $m)) {
                     $pc = $m[1];
@@ -46,10 +48,15 @@ class url implements Countable, ArrayAccess, Iterator {
                 # could pass in the result of get_class or __CLASS__;
                 # in that case, strip off the prefixing controller_ part
                 $pc = $m[1];
-            } elseif (empty($pc)) {
-                continue;
+            } elseif (!(strpos($pc, '/') === false)) {
+                $pc = trim($pc, " \t\n\r\x0B/\0");
+                $pc = explode('/', $pc);
+                while(count($pc) > 1) {
+                    array_push($np, array_shift($pc));
+                }
+                if ($pc) $pc = array_shift($pc);
             }
-            $np[] = trim(trim($pc, '/'));
+            $np[] = trim($pc, " \t\n\r\x0B/\0");
         }
         if (count($np) == 1) {
             $np[] = '';
