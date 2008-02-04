@@ -19,6 +19,7 @@ $_SERVER['routes'] = array();
 function invoke_controller($request) {
 
     $controller = array_shift($request);
+    $controller_file = $controller_class = false;
 
     if (isset($_SERVER['routes'])) {
         if (isset($_SERVER['routes'][$controller])) {
