@@ -29,14 +29,22 @@ class cond {
 
     public static function like() { $x = func_get_args(); return new cond('like', array_values_recursive($x)); }
     private function like_expr($l) { return array("like ?:$l", array($l=>$this->val[0])); }
+
     public static function in() { $x = func_get_args(); return new cond('in', array_values_recursive($x)); }
     private function in_expr($l) { return array("in (?:$l:join)", array("$l:join"=>$this->val)); }
-    public static function equal($x) { return new cond('in', $x); }
+
+    public static function notin() { $x = func_get_args(); return new cond('notin', array_values_recursive($x)); }
+    private function notin_expr($l) { return array("not in (?:$l:join)", array("$l:join"=>$this->val)); }
+
+    public static function equal($x) { return new cond('equal', $x); }
     private function equal_expr($l) { return array("= ?:$l", array($l=>$this->val)); }
+
     public static function between($x, $y) { return new cond('between', array('min'=>$x, 'max'=>$y)); }
     private function between_expr($l) { return array("between ?:min$l and ?:max$l", array("min$l"=>$this->val['min'], "max$l"=>$this->val['max'])); }
+
     public static function lt($x) { return new cond('lt', array('x'=>$x)); }
     private function lt_expr($l) { return array("< ?:x$l", array("x$l"=>$this->val['x'])); }
+
     public static function gt($x) { return new cond('gt', array('x'=>$x)); }
     private function gt_expr($l) { return array("> ?:x$l", array("x$l"=>$this->val['x'])); }
 }
