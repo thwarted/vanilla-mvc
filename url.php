@@ -153,7 +153,11 @@ class url implements Countable, ArrayAccess, Iterator {
     }
 
     public function offsetSet($offset, $value) {
-        $this->getvars[$offset] = $value;
+        if (!isset($offset)) {
+            $this->path[] = $value;
+        } else {
+            $this->getvars[$offset] = $value;
+        }
     }
 
     public function offsetUnset($offset) {
