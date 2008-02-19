@@ -517,7 +517,9 @@ class form_select_series extends form_input_radio_series {
                                 $iid, htmlspecialchars($optval), $checked, $label);
             $items[] = "   $i\n";
         }
-        $r = "<select name=\"".$this->mkname()."\" id=\"$id\">\n";
+        $r = "<select name=\"".$this->mkname()."\" ";
+        $r .= $this->render_attributes();
+        $r .= ">\n";
         $r .= join('', $items);
         $r .= "\n</select>\n";
         return $r;
