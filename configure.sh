@@ -55,7 +55,7 @@ if [ ! -e ./.htaccess ]; then
 cat > .htaccess <<EOF
 RewriteEngine On
 RewriteBase $DOCROOT
-RewriteRule ^.*$ vanilla/dispatch.php
+RewriteRule ^.* vanilla/dispatch.php
 
 # the media/ directory needs an .htaccess that does RewriteEngine Off
 EOF
