@@ -142,7 +142,7 @@ class url implements Countable, ArrayAccess, Iterator {
 
     # ArrayAccess interface
     public function offsetExists($offset) {
-        return (isset($this->getvars[$offset]) && is_object($this->getvars[$offset]));
+        return (isset($this->getvars[$offset]));
     }
 
     public function offsetGet($offset) {
