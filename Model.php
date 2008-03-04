@@ -23,6 +23,18 @@ class Model extends ModelBase {
     protected $__original = array();
     protected $__jointype = NULL;
 
+    /*
+    public function __sleep() {
+        return array('__members', '__original');
+    }
+
+    public function __wakeup() {
+        global $schema; # this is bad, this is set by the app, not by vanilla
+        $this->_db = $schema;
+        $this->_t = $schema->tables[get_class($this)];
+    }
+    */
+
     public function __construct($data=array()) {
         $this->_t = eval('return '.get_class($this).'::$__table__;');
         $this->_db = $this->_t->db;
