@@ -766,6 +766,10 @@ class form implements Countable, ArrayAccess, Iterator {
         return $this->_fields[$offset];
     }
 
+    public function fields() {
+        return array_keys($this->_fields);
+    }
+
     public function offsetSet($offset, $value) {
         # we purposely ignore the offset value
         if (is_object($value) && ($value instanceof formfield)) {
