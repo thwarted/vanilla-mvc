@@ -16,11 +16,13 @@
 
 class _object_cache {
     static $cache = array();
+    static $active = true;
 
     public static function singleton($o, $id=NULL, $class=NULL) {
         if (!is_object($o) || !($o instanceof Model)) {
             throw new Exception("trying to get singleton of non-Model instance");
         }
+        if (!self::$active) return $o;
         if (!isset($class)) {
             $class = get_class($o);
         }
@@ -37,8 +39,10 @@ class _object_cache {
     }
 
     public static function store($class, $pkvalue, $o) {
-        #lib::el(sprintf('objcache assigning %s(%d)', $class, $pkvalue));
-        self::$cache[$class][$pkvalue] = $o;
+        if (self::$active) {
+            #lib::el(sprintf('objcache assigning %s(%d)', $class, $pkvalue));
+            self::$cache[$class][$pkvalue] = $o;
+        }
     }
 
     public static function get($class, $pkvalue) {
@@ -68,8 +72,10 @@ class _object_cache {
     }
     
     public static function xflush() {
-        #lib::el("flushing all cached objects");
-        self::$cache = array();
+        if (self::$active) {
+            #lib::el("flushing all cached objects");
+            self::$cache = array();
+        }
     }
 }
 
