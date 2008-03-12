@@ -146,9 +146,11 @@ class lib {
         $dbstats = lib::dbstats();
         $box .= lib::trow('database', $dbstats);
 
-        ob_start(); print_r($_SESSION); $msg = ob_get_contents(); ob_end_clean();
-        $msg = preg_replace('/(^Array\n\(|\n\)$)/', '', $msg);
-        $box .= lib::trow('session', "<pre style='margin: 0px; padding: 0px;'>$msg</pre>");
+        if (isset($_SESSION)) {
+            ob_start(); print_r($_SESSION); $msg = ob_get_contents(); ob_end_clean();
+            $msg = preg_replace('/(^Array\n\(|\n\)$)/', '', $msg);
+            $box .= lib::trow('session', "<pre style='margin: 0px; padding: 0px;'>$msg</pre>");
+        }
 
         global $__RECMSG;
         if ($__RECMSG) {
