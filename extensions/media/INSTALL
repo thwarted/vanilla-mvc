@@ -1,0 +1,4 @@
+
+Put the following line in your setup/global_conf.php file:
+
+require_once "vanilla/extensions/media/setup.php";

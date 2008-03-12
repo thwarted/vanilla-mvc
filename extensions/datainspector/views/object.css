@@ -1,0 +1,141 @@
+{literal}
+body {
+    font-size: 80%;
+    color: black;
+    font-family: Verdana,Helvetica,Arial;
+    background-color: #fff;
+    margin: 0px;
+    padding: 0px;
+}
+
+div.inspector {
+    margin: 30px;
+}
+
+pre.path {
+    font-size: 120%;
+    font-weight: bold;
+    background-color: #dde;
+    padding: 3px 0 3px 5px;
+}
+
+h2 {
+    font-size: 23px;
+    text-transform: uppercase;
+    margin: 5px 0px;
+    letter-spacing: 1px;
+}
+
+table.objnav tbody tr td.nav {
+}
+
+table.objnav tbody tr td.cur {
+    font-size: 180%;
+    text-align: center;
+    font-weight: bold;
+}
+
+table.fields thead th {
+    border-bottom: 1px solid black;
+}
+
+table.fields thead tr th.first {
+    text-align: right;
+    padding-right: 1em;
+}
+
+table.fields thead tr th {
+    text-align: left;
+}
+
+table.fields {
+    width: 85%;
+    margin-left: 5%;
+}
+
+table.fields td.name {
+    font-weight: bold;
+    text-align: right;
+    /* width: 15em; */
+    width: 22%;
+    margin: 0px;
+    font-family: Courier;
+}
+
+table.fields td.type {
+    width: 6%;
+}
+
+table.fields td.value {
+}
+
+table.fields td {
+    border-bottom: 1px solid #bbb;
+    padding-right: 1em;
+}
+
+table.fields td.type {
+    font-size: 80%;
+    color: #444;
+}
+
+table.fields tr.odd {
+    background-color: #eef;
+}
+
+table.fields tr.odd:hover,
+table.fields tr.even:hover {
+    background-color: #ddd;
+}
+
+td.value dt {
+    float: left;
+    clear: both;
+    font-family: courier;
+    text-align: right;
+    margin: 0px;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+td.value dd {
+    font-family: courier;
+    float: left;
+}
+
+table.fields td.value dl dd a.urllinklist {
+    color: #40f;
+}
+
+table.fields td.value a,
+table.fields td.value span.collection 
+{
+    font-family: sans-serif;
+    font-size: 80%;
+    color: blue;
+    padding-bottom: 2px;
+    display: block;
+    cursor: pointer;
+}
+
+table.fields pre {
+    margin: 0px;
+    white-space: normal;
+}
+
+a:hover {
+    background-color: transparent;
+}
+
+span.null {
+    color: #a00;;
+    font-size: 80%;
+    display: block;
+}
+
+span.date {
+    color: #0a0;
+    font-size: 80%;
+    display: block;
+}
+{/literal}

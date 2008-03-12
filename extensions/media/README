@@ -1,0 +1,21 @@
+This extension serves related media files from the views directory, allowing
+you to keep javascript and CSS files near the templates during development.
+
+The file
+  ./views/something/whatever.css
+will be served as
+  /media/views/something/whatever.css
+
+The file can end in .tpl
+  ./views/something/whatever.css.tpl
+in which case it will be considered a regular view template such that
+smarty code will be evaluated in it.  Since javascript and CSS use the default
+smarty delimiters of { and }, in a .js.tpl or .css.tpl file the smarty 
+delimiters are {{ and }}.  So
+  {$smarty.server.SERVER_SOFTWARE}
+  {foreach from=$x item=y}
+becomes
+  {{$smarty.server.SERVER_SOFTWARE}}
+  {{foreach from=$x item=y}}
+
+It is not recommended to make heavy use of this.

@@ -1,0 +1,5 @@
+
+This extension provides customized error pages.
+
+Create a directory in views named errorpage and create a file for each 
+HTTP exception your code will throw.  See samples in the views/ directory.

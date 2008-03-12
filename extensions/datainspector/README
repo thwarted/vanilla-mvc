@@ -1,0 +1,6 @@
+
+This extension provides a datainspector URL that allows you the browse
+the models that map to database objects.  This can make template creation
+easier because you can see all the available data for any model (and
+how the models relate to one another).
+
