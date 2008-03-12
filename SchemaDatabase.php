@@ -64,6 +64,8 @@ class SchemaDatabase {
 
     private function ___find_tables_build_models($options) {
         $ModelCommonCode = file_get_contents('vanilla/ModelCommonCode.php');
+        # this could potentially save some space in the cached/serialized SchemaDatabase object
+        #$ModelCommonCode = preg_replace('/#[^\n]*\n/', '', $ModelCommonCode);
 
         $ignore = @ $options['ignore'];
         if (!$ignore) $ignore = array();
@@ -71,32 +73,34 @@ class SchemaDatabase {
 
         $ignorere = @ $options['ignorere'];
 
-        /*
-        $sth = $this->dbhandle->prepare("show tables from ".$this->nameQ);
-        $sth->execute();
-        while(list($tn) = $sth->fetchrow_array()) {
-        */
         $tables = $this->dbhandle->tables();
         while($tn = array_shift($tables)) {
             if (in_array($tn, $ignore)) continue;
             if ($ignorere) {
                 if (preg_match($ignorere, $tn)) continue;
             }
-            $ST = new SchemaTable($this, $tn);
-            $this->tables[$tn] = $ST;
-            if (!class_exists($tn)) {
+            $cn = $tn;
+            if (isset($options['table_match_re'])) {
+                if (!preg_match($options['table_match_re'], $tn))
+                    continue;
+
+                $cn = preg_replace($options['table_match_re'], '$2', $tn);
+            }
+            $ST = new SchemaTable($this, $tn, $cn);
+            $this->tables[$cn] = $ST;
+            if (!class_exists($cn)) {
                 #error_log("creating class $tn");
-                $code = 'class '.$tn.' extends Model { '.$ModelCommonCode.' }';
+                $code = 'class '.$cn.' extends Model { '.$ModelCommonCode.' }';
                 eval($code);
-                $this->builtclasses[$tn] = $code;
+                $this->builtclasses[$cn] = $code;
             }
-            $cv = get_class_vars($tn);
+            $cv = get_class_vars($cn);
             if (!array_key_exists('__table__', $cv)) {
-                throw new Exception('pre-defined Model class '.$tn.' does not have $__table__ as a public static member');
+                throw new Exception('pre-defined Model class "'.$cn.'" does not have $__table__ as a public static member');
             }
-            $code = sprintf('%s::$__table__ = $ST;', $tn);
+            $code = sprintf('%s::$__table__ = $ST;', $cn);
             eval($code);
-            $this->setupcode[$tn] = $code;
+            $this->setupcode[$cn] = $code;
         }
 
         /*

@@ -54,15 +54,20 @@ class SchemaTable {
     public $db;
     public $name;
     public $nameQ;
+    public $modelname;
 
     public $pk = array();
     public $columns = array();
     public $virtual = array();
 
-    public function __construct($db, $name) {
+    public function __construct($db, $tablename, $modelname=NULL) {
         $this->db = $db;
-        $this->name = $name;
-        $this->nameQ = $this->db->dbhandle->quote_label($name);
+        $this->name = $tablename;
+        $this->nameQ = $this->db->dbhandle->quote_label($tablename);
+        if (!isset($modelname)) {
+            $modelname = $tablename;
+        }
+        $this->modelname = $modelname;
     }
 
     public function dump() {
@@ -71,7 +76,7 @@ class SchemaTable {
             $l = sprintf('   %s %s', $c->nameQ, $c->type);
             if ($c->references) {
                 $l .= sprintf("\n         references a %s", $c->references);
-                $l .= sprintf("\n         value from (self).%s", $c->source);
+                #$l .= sprintf("\n         value from (self).%s", $c->source);
             }
             $x[$c->nameQ] = $l;
         }
@@ -86,7 +91,7 @@ class SchemaTable {
             }
             $x[$c->nameQ] = $l;
         }
-        return "table ".$this->name."\n".join("\n", $x)."\n";
+        return "model ".$this->modelname." uses table ".$this->name."\n".join("\n", $x)."\n";
     }
 
     public function ___collist($tabalias=NULL, $fullcolalias=false) {
@@ -176,7 +181,7 @@ class SchemaTable {
         #error_log($sth->_stmt());
         $r = array();
         $PK = $this->pk;
-        $class = $this->name;
+        $class = $this->modelname;
         while($o = $sth->fetchrow_object($class)) {
             $o = _object_cache::singleton($o, $o->$PK, $class);
             $o->checkpoint();
@@ -243,7 +248,7 @@ class SchemaTable {
         $sth->execute($a);
         $r = array();
         $PK = $this->pk;
-        $class = $this->name;
+        $class = $this->modelname;
         while($x = $sth->fetchrow_hashref()) {
             # FIXME unfinished
             # expand results into individual objects
@@ -299,7 +304,7 @@ class SchemaTable {
                 if (isset($this->db->tables[$foreigntab])) {
                     $ft = $this->db->tables[$foreigntab];
                     if (isset($ft->columns['id'])) {
-                        $refersto = $ft->name;
+                        $refersto = $ft->modelname;
                     }
                 }
                 if (!empty($refersto)) {
@@ -326,25 +331,25 @@ class SchemaTable {
                 TB.virtual collection of MODEL
                     by MODEL.(VC.source) = TB.id
         */
-        foreach ($this->virtual as $name=>$field) {
-            $tb = @ $this->db->tables[$name];
+        foreach ($this->virtual as $modelname=>$field) {
+            $tb = @ $this->db->tables[$modelname];
             if ($tb) {
                 # if there is already a virtual column defined with the same name
                 # it has higher priority because the data for it came from the 
                 # table itself, not a foreign reference
-                if (isset($tb->virtual[$this->name])) {
-                    #error_log("already defined virtual column $name.".$this->name);
+                if (isset($tb->virtual[$this->modelname])) {
+                    #error_log("already defined virtual column $modelname.".$this->name);
                     continue;
                 }
-                if (isset($tb->columns[$this->name])) {
-                    #error_log("already defined column $name.".$this->name);
+                if (isset($tb->columns[$this->modelname])) {
+                    #error_log("already defined column $modelname.".$this->name);
                     continue;
                 }
-                $v = new SchemaColumn($tb, $this->name);
-                $v->class = $this->name;
+                $v = new SchemaColumn($tb, $this->modelname);
+                $v->class = $this->modelname;
                 $v->virtual = true;
                 $v->collectionsql = $this->db->dbhandle->quote_label($field->source)." = ?:id";
-                $tb->virtual[$this->name] = $v;
+                $tb->virtual[$this->modelname] = $v;
 
                 #error_log("(2) adding virtual column ".$tb->name.".".$this->name);
             }
@@ -352,10 +357,10 @@ class SchemaTable {
     }
 
     public function ___create_through_joins() {
-        foreach ($this->virtual as $name=>$field) {
-            # does the virtual column name ($name) match another table?
-            $re = sprintf('/^((\w+)_%s|%s_(\w+))/', $this->name, $this->name);
-            if (preg_match($re, $name, $m)) {
+        foreach ($this->virtual as $modelname=>$field) {
+            # does the virtual column name ($modelname) match another table?
+            $re = sprintf('/^((\w+)_%s|%s_(\w+))/', $this->modelname, $this->modelname);
+            if (preg_match($re, $modelname, $m)) {
                 @ list($all, $thrutbname, $p1, $p2) = $m;
                 $asctbname = empty($p1) ? $p2 : $p1;
                 #error_log("found table $asctbname for ".$this->name." through $thrutbname");
