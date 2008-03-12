@@ -48,12 +48,23 @@ class HTTPException extends Exception {
         return $this->__location;
     }
 
+
     public function body() {
-        $code = $this->getCode();
-        $msg = $this->getMessage();
-        $ss = isset($_SERVER['SERVER_SOFTWARE']) ? $_SERVER['SERVER_SOFTWARE'] : '';
-        $ret = "<html><head><title>$msg</title></head><body><h1>$code</h1>$msg<hr/><em>$ss</em></body></html>";
-        return $ret;
+        try {
+            $c = invoke_controller(array('errorpage'));
+            ob_start();
+            $c->_render($this);
+            $output = ob_get_clean();
+        } catch (Exception $e) {
+            lib::log_exception($e);
+            # if there are any errors at all, fall back on simple error reporting
+            $code = $this->getCode();
+            $msg = $this->getMessage();
+            $ss = isset($_SERVER['SERVER_SOFTWARE']) ? $_SERVER['SERVER_SOFTWARE'] : '';
+            $ret = "<html><head><title>$msg</title></head><body><h1>$code</h1>$msg<hr/><em>$ss</em></body></html>";
+            return $ret;
+        }
+        return $output;
     }
 }
 
@@ -97,20 +108,6 @@ class HTTPNotFound extends HTTPException {
         $msg = "$x not found";
         if ($extramsg) $msg .= " ($extramsg)";
         parent::__construct($msg, 404);
-    }
-
-    public function body() {
-        try {
-            $c = invoke_controller(array('errorpage'));
-            ob_start();
-            $c->_render($this);
-            $output = ob_get_clean();
-        } catch (Exception $e) {
-            lib::log_exception($e);
-            # if there are any errors at all, fall back on inherited functionality
-            $output = parent::body();
-        }
-        return $output;
     }
 }
 
