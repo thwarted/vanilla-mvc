@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+# buh, this should be moved to dbi.php
 class cond {
     public $op;
     public $val;
@@ -47,6 +48,9 @@ class cond {
 
     public static function gt($x) { return new cond('gt', array('x'=>$x)); }
     private function gt_expr($l) { return array("> ?:x$l", array("x$l"=>$this->val['x'])); }
+
+    public static function nullsafeequal($x) { return new cond('nullsafeequal', array('x'=>$x)); }
+    private function nullsafeequal_expr($l) { return array("<=> ?:x$l", array("x$l"=>$this->val['x'])); }
 }
 
 
