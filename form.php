@@ -538,6 +538,10 @@ class form_fileupload extends formfield {
         return $r;
     }
 
+    public function multiple_values() {
+        throw new Exception("form_fileupload can not handle multiple values");
+    }
+
     public function max_file_size($s) {
         $this->_max_file_size = intval($s);
         return $this;
@@ -553,24 +557,55 @@ class form_fileupload extends formfield {
         return $this->_value;
     }
 
+    public function error_string($v, $required=false) {
+        switch ($v) {
+            case UPLOAD_ERR_OK:
+                return NULL;
+
+            case UPLOAD_ERR_INI_SIZE:
+            case UPLOAD_ERR_FORM_SIZE:
+                return "file to large";
+
+            case UPLOAD_ERR_PARTIAL:
+                return "incomplete upload";
+
+            case UPLOAD_ERR_NO_FILE:
+                if ($required) return "required";
+                return NULL;
+
+            case UPLOAD_ERR_NO_TMP_DIR:
+            case UPLOAD_ERR_INI_SIZE:
+                return "configuration error";
+
+            case UPLOAD_ERR_EXTENSION:
+                return "extension not allowed";
+        }
+        return "unknown error ($v)";
+    }
+
     public function verify() {
         if (is_bool($this->_valid)) {
             # we've already run the verifier, don't do it again
             return $this->_valid;
         }
         if ($this->_required) {
-            if (isset($this->_value) && empty($this->_value)) {
+            if (empty($this->_value)) {
                 $this->_valid = false;
                 $this->_errormsg = 'required';
-            }
-        } else {
-            if (empty($this->_value)) {
-                $this->_valid = true;
+                return $this->_valid;
             }
         }
-        if (!isset($this->_valid)) {
-            $this->_valid = true;
+
+        $this->_valid = true;
+        $this->_errormsg = NULL;
+        if (isset($this->_value) && is_array($this->_value)) {
+            $this->_errormsg = $this->error_string($this->_value['error'], $this->_required);
+            if ($this->_errormsg) {
+                $this->_valid = false;
+                return $this->_valid;
+            }
         }
+        $this->_verify_single();
         return $this->_valid;
     }
 }
