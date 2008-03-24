@@ -300,6 +300,7 @@ function url() {
     foreach ($c as $i) {
         if (is_object($i)) {
             $i = get_class($i);
+            if ($i === 'URLOPT') continue; # skip these, they are only appropriate for url objects
             if (preg_match('/^controller_(\w+)$/', $i, $m)) {
                 $i = $m[1];
             } else {

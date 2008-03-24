@@ -10,8 +10,21 @@
 #  $u['get'] = 'variable';            # set GET variables
 #  $u->merge(array(key=>value));      # merge the passed array into the get variables
 #
+#  url::$ABSOLUTE
+#  url::$HTTPS     passed in to the constructor will set those to true
+#
 #  strval($u)                         # return as a string
 #    or use in a string context
+#
+# TODO support all URL components
+#      support port number
+#      support protocol-less absolute paths (to make it easier to 
+#                   support both http and https with the same page content)
+#      improve support for https protocol
+#      https support should really work via changing the protocol
+#                   rather than a boolean flag
+
+class URLOPT { /* an empty class used to pass options into the url constructor */ }
 
 class url implements Countable, ArrayAccess, Iterator {
     private $getvars = array();
@@ -23,12 +36,19 @@ class url implements Countable, ArrayAccess, Iterator {
     private $authuser;
     private $authpass;
 
+    public static $ABSOLUTE = NULL;
+    public static $HTTPS = NULL;
+
     public function __construct() {
+        # FIXME verify this CGI var, only sure for Apache
+        $this->secure = isset($_SERVER['HTTPS']); # set default, use current context
+        $this->domain = $_SERVER['SERVER_NAME'];  # set default, use current context
+
+        if (!isset(url::$ABSOLUTE)) url::$ABSOLUTE = new URLOPT();
+        if (!isset(url::$HTTPS)) url::$HTTPS = new URLOPT();
+
         $p = func_get_args();
         $this->path($p);
-        # FIXME verify this CGI var, only sure for Apache
-        $this->secure = isset($_SERVER['HTTPS']);
-        $this->domain = $_SERVER['SERVER_NAME'];
     }
 
     public function path() {
@@ -38,6 +58,14 @@ class url implements Countable, ArrayAccess, Iterator {
             if (empty($pc)) {
                 continue;
             } elseif (is_object($pc)) {
+                if ($pc === url::$ABSOLUTE) {
+                    $this->absolute(true);
+                    continue;
+                }
+                if ($pc === url::$HTTPS) {
+                    $this->secure(true);
+                    continue;
+                }
                 $pc = get_class($pc);
                 if (preg_match('/^controller_(\w+)$/', $pc, $m)) {
                     $pc = $m[1];
@@ -119,6 +147,7 @@ class url implements Countable, ArrayAccess, Iterator {
 
     private function make_absolute($u) {
         if (!$u) { return $u; }
+        # FIXME if it is already absolute with a protocol, it won't be made secure
         if (preg_match('@^https?://@', $u)) {
             return $u;
         }
