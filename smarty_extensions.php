@@ -145,6 +145,10 @@ class smarty_extensions {
         return smarty_extensions::modifier_attr($v, 'style', $style);
     }
 
+    public function modifier_class($v, $class) {
+        return smarty_extensions::modifier_attr($v, 'class', $class);
+    }
+
     public function modifier_value($v, $value) {
         return smarty_extensions::modifier_attr($v, 'value', $value);
     }
