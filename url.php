@@ -43,10 +43,6 @@ class url implements Countable, ArrayAccess, Iterator {
         # FIXME verify this CGI var, only sure for Apache
         $this->secure = isset($_SERVER['HTTPS']); # set default, use current context
         $this->domain = $_SERVER['SERVER_NAME'];  # set default, use current context
-
-        if (!isset(url::$ABSOLUTE)) url::$ABSOLUTE = new URLOPT();
-        if (!isset(url::$HTTPS)) url::$HTTPS = new URLOPT();
-
         $p = func_get_args();
         $this->path($p);
     }
@@ -201,4 +197,7 @@ class url implements Countable, ArrayAccess, Iterator {
     public function valid() { return current($this->getvars) ? true : false; }
 
 }
+
+if (!isset(url::$ABSOLUTE)) url::$ABSOLUTE = new URLOPT();
+if (!isset(url::$HTTPS)) url::$HTTPS = new URLOPT();
 
