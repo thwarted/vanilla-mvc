@@ -68,9 +68,12 @@ class DBIstatement {
 
     public function __construct(&$dbh, $statement) {
         $statement = trim($statement);
-        preg_match('/^(\w+)/', $statement, $m);
-        list($all, $type) = $m;
-        $this->stmttype = strtolower($type);
+        if (preg_match('/^\W*(\w+)/', $statement, $m)) {
+            list($all, $type) = $m;
+            $this->stmttype = strtolower($type);
+        } else {
+            $this->stmttype = 'unknown';
+        }
         $this->dbh = $dbh;
         $this->sql = $statement;
         if (preg_match('/\?:\w+/', $statement)) {
