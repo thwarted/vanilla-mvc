@@ -114,6 +114,10 @@ class smarty_extensions {
         $attrvalue = htmlspecialchars($attrvalue);
         if (preg_match("/$attrname=/", $v)) {
             # replace current ones
+            # this regular expression could be better, it won't properly detect/replace
+            # single-quoted strings inside of double-quoted strings (or vise versa)
+            # might not be doable with a regular expression, might have to do two passes
+            # to find the correct quote char
             $v = preg_replace("/($attrname=['\"]?)([^'\"]+)(['\"]?)/", "$attrname=\"$attrvalue\"", $v);
         } else {
             # add new
