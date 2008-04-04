@@ -194,10 +194,10 @@ class SchemaTable {
         return $r;
     }
 
-    public function find_first($cond) {
+    public function find_first($cond, $orderby=NULL) {
         # FIXME optimize this by checking if $cond is an integer
         # and seeing if the object already exists in _object_cache
-        $x = $this->find($cond, 1);
+        $x = $this->find($cond, 1, $orderby);
         if (empty($x)) return NULL;
         return $x[0];
     }
@@ -363,6 +363,7 @@ class SchemaTable {
     public function ___create_through_joins() {
         foreach ($this->virtual as $modelname=>$field) {
             # does the virtual column name ($modelname) match another table?
+            # this re may need an $ anchor at the end
             $re = sprintf('/^((\w+)_%s|%s_(\w+))/', $this->modelname, $this->modelname);
             if (preg_match($re, $modelname, $m)) {
                 @ list($all, $thrutbname, $p1, $p2) = $m;
