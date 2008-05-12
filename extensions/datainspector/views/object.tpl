@@ -48,13 +48,7 @@
                 <tr class="{cycle values="odd,even"}">
                 <td class="name" valign="top">-&gt;{$f}</td>
                 <td class="type" valign="top">{include file="type.tpl" v=$obj->$f}</td>
-                {if $f === 'drupal_nid' && $drupalnodelink} 
-                    <td class="value"><a href="{$drupalnodelink}">browse legacy drupal node data</a></td>
-                {elseif $f === 'drupal_uid' && $drupaluserlink} 
-                    <td class="value"><a href="{$drupaluserlink}">browse legacy drupal user data</a></td>
-                {else}
-                    <td class="value">{include file="value.tpl v=$obj->$f}</td>
-                {/if}
+                <td class="value">{include file="value.tpl v=$obj->$f}</td>
                 </tr>
             {/foreach}
             </tbody>
