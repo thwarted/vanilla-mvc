@@ -14,7 +14,7 @@
     {/if}
 {elseif $t === 'null'}
     {assign var=label value="no value, will print as empty string"}
-{elseif preg_match('/(^date_|^last_login$|_at$|_date$)/', $f) && is_integer($v)}
+{elseif preg_match('/(^date_|^last_login$|_at$|_date$)/', $f) && preg_match('/^\d+$/', $v)}
     {assign var=label value="format using date_format"}
     {assign var=t value="date/time"}
 {else}

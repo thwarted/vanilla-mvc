@@ -52,7 +52,7 @@
     {/if}
 {elseif preg_match('/html/', $f) && is_string($v)}
     <pre>{$v|htmlentities}</pre>
-{elseif preg_match('/(^date_|^last_login$|_at$|_date$)/', $f) && is_integer($v)}
+{elseif preg_match('/(^date_|^last_login$|_at$|_date$)/', $f) && preg_match('/^\d+$/', $v)}
     <span class="date">{$v} {if $v}({$v|date_format:"%Y-%m-%d %T"}){/if}</span>
 {else}
     {if !isset($v)}
