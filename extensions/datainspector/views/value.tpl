@@ -59,7 +59,7 @@
         <span class="null">NULL</span>
     {elseif is_array($v)}
         {assign var=ix value="id"|uniqid}
-        <span onclick="return toggleCollection('#{$ix}');" class="collection" style="float: left; padding-right: 10px;">array ({$v|@count} members)</span>
+        <span onclick="return toggleCollection('{$ix}');" class="collection" style="float: left; padding-right: 10px;">array ({$v|@count} members)</span>
         <dl id="{$ix}" style="display: none; clear: both; margin-bottom: 0px;">
         {foreach from=$v key=n item=x}
             <dt><span style="color: red;">.{$n}</span> =&gt;</dt>

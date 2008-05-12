@@ -1,7 +1,7 @@
 {strip}
 {assign var=t value=$v|@gettype|strtolower}
 {if $t === 'array'}
-    {assign var=label value="iterate using foreach, or access members with .field"}
+    {assign var=label value="iterate using foreach, or access members with .element"}
 {elseif $t === 'object'}
     {if $v instanceof ModelCollection}
         {assign var=t value="array"}
