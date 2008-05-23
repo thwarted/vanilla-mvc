@@ -129,6 +129,7 @@ class url implements Countable, ArrayAccess, Iterator {
             }
             $v = preg_replace('@/\./@', '/', $v);
         }
+        $v = preg_replace('!/+!', '/', $v);
         if ($this->absolute) {
             $v = $this->make_absolute($v);
         }
