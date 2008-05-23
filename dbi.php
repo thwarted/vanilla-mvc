@@ -45,7 +45,7 @@
  *
  */
 
-class DBIException extends Exception { 
+class DBIException extends Exception {
     private $stmt;
     public function setStatement($s) {
         $this->stmt = $s;
@@ -316,8 +316,10 @@ class DBIdbh {
         return $this->dbd->quote($value);
     }
 
-    public function prepare($stmt) {
-
+    public function prepare($stmt=NULL) {
+        if (!$stmt) {
+            throw new DBIException("empty statement");
+        }
         DBI::$query_count++;
         $sth = new DBIstatement($this, $stmt);
         return $sth;
@@ -341,7 +343,7 @@ class DBIdbh {
     }
 
     public function table_info($table) {
-        # should take arguments of $cataog, $schema, $table, $type
+        # should take arguments of $catalog, $schema, $table, $type
         return $this->dbd->table_info($table);
     }
 

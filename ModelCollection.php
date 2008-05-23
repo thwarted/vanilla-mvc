@@ -73,7 +73,7 @@ class ModelCollection extends ModelBase implements Countable, ArrayAccess, Itera
         foreach ($a as $x) {
             $this[] = $x;
         }
-        d(sprintf("%d elements merged in to make %d total", count($a), count($this)));
+        #d(sprintf("%d elements merged in to make %d total", count($a), count($this)));
     }
 
     public function walk($callback /* .... */ ) {
@@ -122,7 +122,7 @@ class ModelCollection extends ModelBase implements Countable, ArrayAccess, Itera
         $r = array('collection-of'=>$this->ofclass);
         $pk = $this->_t->pk;
         foreach ($this as $v) {
-            $x = sprintf('%s(%s=%d)', $this->ofclass, $pk, $v->$pk);
+            $x = sprintf('%s(%s=%s)', $this->ofclass, $pk, $v->$pk);
             if ($deep) {
                 $r[$x] = $v->dump();
             } else {
@@ -130,7 +130,7 @@ class ModelCollection extends ModelBase implements Countable, ArrayAccess, Itera
             }
         }
         foreach ($this->pendingdel as $v) {
-            $r["deleted-".$v->$pk] = sprintf('%s(%s=%d)', $this->ofclass, $pk, $v->$pk);
+            $r["deleted-".$v->$pk] = sprintf('%s(%s=%s)', $this->ofclass, $pk, $v->$pk);
         }
         return $r;
     }

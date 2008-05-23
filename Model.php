@@ -23,6 +23,31 @@ class Model extends ModelBase {
     protected $__original = array();
     protected $__jointype = NULL;
 
+    public function modelinfo($class) {
+        if (is_object($class)) $class = get_class($class);
+        $c = eval('return '.$class.'::$__table__;');
+        return $c;
+    }
+
+    public function _has_complex_primary_key($x=NULL) {
+        return false;
+    }
+
+    public function _simple_primary_key($class) {
+        $ti = self::modelinfo($class);
+        return $ti->pk;
+    }
+
+    public function _find($class, $a) {
+        $x = self::modelinfo($class);
+        return call_user_func_array(array($x, 'find'), $a);
+    }
+
+    public function _find_first($class, $a) {
+        $x = self::modelinfo($class);
+        return call_user_func_array(array($x, 'find_first'), $a);
+    }
+
     /*
     public function __sleep() {
         return array('__members', '__original');
@@ -50,6 +75,18 @@ class Model extends ModelBase {
 
     public function virtual_members() {
         return array_keys($this->__virtmembers);
+    }
+
+    public function generated_members() {
+        $mall = get_class_methods($this);
+        $mgen = array();
+        foreach ($mall as $x) {
+            if (preg_match('/^__get_(\w+)/', $x, $m)) {
+                $mgen[] = $m[1];
+            }
+        }
+        sort($mgen);
+        return $mgen;
     }
 
     public function cleanup() { # manually called destructor
@@ -202,7 +239,7 @@ class Model extends ModelBase {
             if (is_object($v)) {
                 # this case should never actually happen for regular members
                 $pk = $this->_db->tables[get_class($v)]->pk;
-                $x = sprintf('%s(%s=%d)', get_class($v), $pk, $v->$pk);
+                $x = sprintf('%s(%s=%s)', get_class($v), $pk, $v->$pk);
             } elseif (is_array($v)) {
                 $x = array();
             } else {
@@ -216,7 +253,7 @@ class Model extends ModelBase {
             if (is_object($v)) {
                 if (! ($v instanceof ModelCollection) ) {
                     $pk = $this->_db->tables[get_class($v)]->pk;
-                    $x = sprintf('%s(%s=%d)', get_class($v), $pk, $v->$pk);
+                    $x = sprintf('%s(%s=%s)', get_class($v), $pk, $v->$pk);
                 } else {
                     $x = $v->dump();
                 }
