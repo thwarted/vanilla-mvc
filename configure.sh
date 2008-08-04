@@ -25,13 +25,13 @@ if [ ! -d ./vanilla -o ! -f ./vanilla/dispatch.php ]; then
     exit 1
 fi
 
-DOCROOT=$1
-shift
-
-if [ "x$DOCROOT" = 'x' ]; then
+if [ "x$1" = 'x' ]; then
     echo "Usage: $0 <document root>" 1>&2
     exit 1
 fi
+
+DOCROOT=$1
+shift
 
 mkdir -p setup
 mkdir -p models
