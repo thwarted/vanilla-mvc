@@ -176,9 +176,9 @@ class DBIstatement {
         if (preg_match('/^\s*(\w+)\b/', $stmt, $m)) {
             @ DBI::$statement_types[strtolower($m[1])]++;
         }
-        if (!empty($_SERVER['debugsql'])) d($stmt);
-        #error_log($stmt);
         $qlen = sprintf('%0.5f', $qend - $qstart);
+        if (!empty($_SERVER['debugsql'])) d($stmt, 'execution time: ' . $qlen . ' sec');
+        #error_log($stmt);
         $this->execution_time = $qlen;
         DBI::$query_runtime += $qlen;
 
@@ -381,17 +381,30 @@ class DBI {
                 throw new DBIException("unable to parse dsn $type");
             }
         }
-        $dbdname = "DBD$type";
-        if ($type && class_exists($dbdname)) {
-            $dbres = call_user_func(array($dbdname, 'connect'), $a);
-            if ($dbres) {
-                $dbh = new DBIdbh(new $dbdname($dbres));
-                return $dbh;
-            }
-        } else {
-            throw new DBIException("unknown database abstraction $type ($dbdname)");
+        $dbdname = self::load_dbdriver($type);
+        $dbres = call_user_func(array($dbdname, 'connect'), $a);
+        if ($dbres) {
+            $dbh = new DBIdbh(new $dbdname($dbres));
+            return $dbh;
         }
         return NULL;
+    }
+
+    private function load_dbdriver($type) {
+        if (!$type) {
+            throw new DBIException("empty database driver specified");
+        }
+        $dbdname = "DBD$type";
+        if (!class_exists($dbdname)) {
+            $filename = "vanilla/dbdrivers/$type.dbd.php";
+            if (file_exists($filename)) {
+                require_once($filename);
+                if (class_exists($dbdname)) {
+                    return $dbdname;
+                }
+            }
+        }
+        throw new DBIException("unknown database abstraction $type ($dbdname)");
     }
 
 }
@@ -406,209 +419,6 @@ class DBD {
     public function escape($x) {
         die("you shouldn't use escape, use quote instead");
         return $this->quote($x);
-    }
-}
-
-class DBDmysql extends DBD {
-    public function connect($a) {
-        if (!empty($a['persistent'])) {
-            $db1 = mysql_pconnect($a['host'], $a['user'], $a['password']);
-        } else {
-            $db1 = mysql_connect($a['host'], $a['user'], $a['password']);
-        }
-        if ($db1 && !empty($a['database'])) {
-            mysql_select_db($a['database'], $db1);
-        }
-        return $db1;
-    }
-    public function quote_includes_enclosing() { return false; }
-    public function quote($x) {
-        return mysql_real_escape_string($x, $this->dbres);
-    }
-    public function query($stmt) {
-        return mysql_query($stmt, $this->dbres);
-    }
-    public function errno() {
-        return mysql_errno($this->dbres);
-    }
-    public function error() {
-        return mysql_error($this->dbres);
-    }
-    public function num_rows() {
-        return mysql_num_rows($this->dbres);
-    }
-    public function affected_rows() {
-        return mysql_affected_rows($this->dbres);
-    }
-    public function insert_id() {
-        return mysql_insert_id($this->dbres);
-    }
-    public function free_result($x) {
-        if (is_resource($x)) {
-            return mysql_free_result($x);
-        }
-    }
-    public function fetch_row($ch) {
-        return mysql_fetch_row($ch);
-    }
-    public function fetch_hash($ch) {
-        return mysql_fetch_assoc($ch);
-    }
-    public function fetch_object($ch) {
-        return mysql_fetch_object($ch);
-    }
-    public function tables() {
-        $q = mysql_query("show tables", $this->dbres);
-        $r = array();
-        while($x = mysql_fetch_row($q)) {
-            $r[] = $x[0];
-        }
-        mysql_free_result($q);
-        return $r;
-    }
-    public function table_info($table) {
-        $q = mysql_query(sprintf('desc `%s`', $table));
-        $r = array();
-        while ($x = mysql_fetch_assoc($q)) {
-            $r[] = $x;
-        }
-        mysql_free_result($q);
-        return $r;
-    }
-    public function column_info($table, $column) {
-        throw new Exception("unimplmented");
-    }
-}
-
-class DBDsqlite extends DBD {
-    public function connect($a) {
-        if (!empty($a['persistent'])) {
-            $db1 = sqlite_popen($a['dbname']);
-        } else {
-            $db1 = sqlite_open($a['dbname']);
-        }
-        return $db1;
-    }
-    public function quote_includes_enclosing() { return false; }
-    public function quote($x) {
-        return sqlite_escape_string($x);
-    }
-    public function query($stmt) {
-        return sqlite_query($stmt, $this->dbres);
-    }
-    public function errno() {
-        return sqlite_last_error($this->dbres);
-    }
-    public function error() {
-        return sqlite_error_string(sqlite_last_error($this->dbres));
-    }
-    public function num_rows() {
-        return sqlite_num_rows($this->dbres);
-    }
-    public function affected_rows() {
-        return sqlite_changes($this->dbres);
-    }
-    public function insert_id() {
-        return sqlite_last_insert_rowid($this->dbres);
-    }
-    public function free_result($x) {
-        return;
-    }
-    public function fetch_row($ch) {
-        return sqlite_fetch_array($ch, SQLITE_NUM);
-    }
-    public function fetch_hash($ch) {
-        return sqlite_fetch_array($ch, SQLITE_ASSOC);
-    }
-    public function fetch_object($ch) {
-        return sqlite_fetch_object($ch);
-    }
-}
-
-class DBDsqlite2 extends DBDsqlite { # alias
-}
-
-class DBDsqlite3 extends DBD {
-    static public function connect($a) {
-        $db1 = new PDO('sqlite:'.$a['dbname']);
-        # this should be a passable option
-        $db1->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        return $db1;
-    }
-    public function quote_includes_enclosing() { return true; }
-    public function quote($x) {
-        return $this->dbres->quote($x);
-    }
-    public function query($stmt) {
-        $c = $this->dbres->prepare($stmt);
-        /* this needs to be revisisted */
-        /* throw a better exception, use DBIException class */
-        if (!$c) {
-            $msg = join("\n", $this->dbres->errorInfo());
-            $e = new DBIException($msg);
-            $e->setStatement($stmt);
-            throw $e;
-        }
-        $c->execute();
-        return $c;
-    }
-    public function errno() {
-        # FIXME, should return an integer description, errorCode looks like HYxxxx
-        return $this->dbres->errorCode();
-    }
-    public function error() {
-        # FIXME, should return a string description
-        return $this->dbres->errorCode();
-    }
-    public function num_rows($ch) {
-        # there does not appear to be a PDO function for this, 
-        # ->rowCount is the wrong one (works on non-selects)
-        return $ch->rowCount();
-    }
-    public function affected_rows($ch) {
-        return $ch->rowCount();
-    }
-    public function insert_id() {
-        return $this->dbres->lastInsertId();
-    }
-    public function free_result($x) {
-        return $x->closeCursor();
-    }
-    public function fetch_row($ch) {
-        return $ch->fetch(PDO::FETCH_NUM);
-    }
-    public function fetch_hash($ch) {
-        return $ch->fetch(PDO::FETCH_ASSOC);
-    }
-    public function fetch_object($ch) {
-        return $ch->fetch(PDO::FETCH_OBJ);
-    }
-    public function tables() {
-        $c = $this->dbres->prepare("select name from sqlite_master where type = 'table'");
-        $c->execute();
-        $r = array();
-        while($x = $c->fetch(PDO::FETCH_NUM)) {
-            $r[] = $x[0];
-        }
-        return $r;
-    }
-    public function table_info($table) {
-        $c = $this->dbres->prepare("PRAGMA table_info(".$table.")");
-        $c->execute();
-        $r = array();
-        while($x = $c->fetch(PDO::FETCH_ASSOC)) {
-            $x['Field'] = $x['name'];
-            $x['Type'] = $x['type'];
-            $x['Default'] = $x['dflt_value'];
-            $x['Null'] = !($x['notnull']) ? 'YES' : 'NO';
-            $x['Key'] = $x['pk'] ? 'PRI' : '';
-            $x['Extra'] = '';
-            $r[] = $x;
-        }
-        return $r;
-    }
-    public function column_info($table, $column) {
-        throw new Exception("unimplmented");
     }
 }
 

@@ -1,0 +1,58 @@
+
+# API
+
+class DBD_YOUR_DRIVER_NAME extends DBD {
+    public function connect($a) {
+        # driver specific connect function
+        # TDB
+    }
+    public function quote_includes_enclosing() {
+        # boolean, if quoting a value with ->quote() returns the outter/enclosing quote characters
+    }
+    public function quote($x) {
+        # quote a value, returning a string that the backend SQL parser will take
+        # strings should be quoted "string" => "\"string\""
+        # numbers can be returned as is  2 => 2
+        # NULL should return "NULL"  NULL => "NULL"
+    }
+    public function query($stmt) {
+        # executes $stmt and returns a statement handle
+    }
+    public function errno() {
+        # returns an error number for the last error
+    }
+    public function error() {
+        # returns an error string for the last error
+    }
+    public function num_rows() {
+    }
+    public function affected_rows() {
+    }
+    public function insert_id() {
+    }
+    public function free_result($x) {
+        # call the underlying database driver's query/cursor release function
+    }
+    public function fetch_row($ch) {
+        # returns an array indexed by numbers for the next row
+    }
+    public function fetch_hash($ch) {
+        # returns an array indexed by column names for the next row
+    }
+    public function fetch_object($ch, $cn=NULL) {
+        # returns the next row as an object, if $cn is specified, the object will be an instance of $cn
+    }
+    public function tables() {
+        # returns a list of tables in the current database
+        # TBD
+    }
+    public function table_info($table) {
+        # return information on $table
+        # TBD
+    }
+    public function column_info($table, $column) {
+        # returns column info about $table.$column
+        # TBD
+    }
+}
+
