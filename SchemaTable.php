@@ -40,6 +40,9 @@ class cond {
     public static function equal($x) { return new cond('equal', $x); }
     private function equal_expr($l) { return array("= ?:$l", array($l=>$this->val)); }
 
+    public static function notequal($x) { return new cond('notequal', $x); }
+    private function notequal_expr($l) { return array("!= ?:$l", array($l=>$this->val)); }
+
     public static function between($x, $y) { return new cond('between', array('min'=>$x, 'max'=>$y)); }
     private function between_expr($l) { return array("between ?:min$l and ?:max$l", array("min$l"=>$this->val['min'], "max$l"=>$this->val['max'])); }
 
