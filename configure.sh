@@ -137,9 +137,15 @@ cat > setup/global_conf.php <<"EOF"
 
 error_reporting(E_ALL);
 
-# set this to a pcre regular expression that matches client addresses
-# that you want to show debug information for in the output
-$_SERVER['internal_hosts_regexp'] = '';
+# set the client addresses that you want to be shown debug information
+# in your output inside of the 'internal_hosts_arr' array. the outputted
+# 'internal_hosts_regexp' is a pcra regular expression.
+$_SERVER['internal_hosts_arr'] = array();
+if (count($_SERVER['internal_hosts_arr') > 0) {
+	$_SERVER['internal_hosts_regexp'] = '/^(' . implode("|", str_replace(".", "\.", $_SERVER['internal_hosts_arr'])) . ')$/';
+} else {
+	$_SERVER['internal_hosts_regexp'] = '';
+}
 
 # set this to the controller name and method that implements 
 # the "default" page
