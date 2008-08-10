@@ -56,21 +56,24 @@ class controller__datainspector extends base_controller {
         if (isset($_GET['path'])) {
             self::$inspector_path = base64_decode($_GET['path']);
         } else {
-            #$this->path = sprintf('<a href="%s">$%s</a>', url($this, 'object', $class, $pk), $class);
             self::$inspector_path = '$'.$class;
         }
 
-        # FIXME there should be an interface in vanilla to get this
-        $modelTable = eval("return ".$class.'::$__table__;');
-        $pkcol = $modelTable->pk;
-        $obj = call_user_func(array($modelTable, 'find_first'), $pk);
+        $modelinfo = Model::modelinfo($class);
+        if (Model::_has_complex_primary_key($modelinfo)) {
+            throw new HTTPException("$class has complex primary key");
+        }
+        $pkcol = Model::_simple_primary_key($class);
+
+        $obj = Model::_find_first($class, array($pk));
 
         if (!is_object($obj)) {
             throw new HTTPNotFound();
         }
 
-        # WARNING: assumes integer primary keys
-        $prev = call_user_func(array($modelTable, 'find'), array($pkcol=>cond::lt($obj->$pkcol)), 1, "$pkcol desc");
+        # WARNING: assumes integer primary keys with the lt and gt checks
+        # need some other way to do navigation in the case of non-integer PKs
+        $prev = Model::_find($class, array(array($pkcol=>cond::lt($obj->$pkcol)), 1, "$pkcol desc"));
         if ($prev) {
             $prev = array_shift($prev);
             $this->view->assign("prevobjid", $prev->id);
@@ -78,7 +81,7 @@ class controller__datainspector extends base_controller {
             $this->view->assign("prevobjlink", $prev);
         }
 
-        $next = call_user_func(array($modelTable, 'find'), array($pkcol=>cond::gt($obj->$pkcol)), 1, $pkcol);
+        $next = Model::_find($class, array(array($pkcol=>cond::gt($obj->$pkcol)), 1, $pkcol));
         if ($next) {
             $next = array_shift($next);
             $this->view->assign("nextobjid", $next->id);
@@ -103,15 +106,8 @@ class controller__datainspector extends base_controller {
         usort($f, array($this, 'sortfields'));
         $this->view->assign('virtmembers', $f);
 
-        $mall = get_class_methods($obj);
-        $mvirt = array();
-        foreach ($mall as $x) {
-            if (preg_match('/^__get_(\w+)/', $x, $m)) {
-                $mvirt[] = $m[1];
-            }
-        }
-        sort($mvirt);
-        $this->view->assign('genfields', $mvirt);
+        $f = $obj->generated_members();
+        $this->view->assign('genfields', $f);
 
         $this->view->assign('path', self::$inspector_path);
 
@@ -132,10 +128,8 @@ class controller__datainspector extends base_controller {
     static public function smarty_modifier_objlink($v) {
         if (is_object($v)) {
             if ($v instanceof Model) {
-                $modelTable = eval("return ".get_class($v).'::$__table__;');
-                $pk = $modelTable->pk;
-                $link = new url('_datainspector', 'object', get_class($v), $v->$pk);
-                $link->absolute();
+                $pk = Model::_simple_primary_key($v);
+                $link = new url(url::$ABSOLUTE, '_datainspector', 'object', get_class($v), $v->$pk);
                 if (self::$last_fieldname) {
                     $link .= "?path=".self::encode_varpath(self::$inspector_path.'->'.self::$last_fieldname);
                 } else {
@@ -149,7 +143,13 @@ class controller__datainspector extends base_controller {
             } elseif ($v instanceof form) {
                 return "form ".$v->name();
             } else {
-                return "--UNKNOWN OBJECT--";
+                $x = get_class($v);
+                $r = array();
+                while($x) {
+                    $r[] = $x;
+                    $x = get_parent_class($x);
+                }
+                return "Unknown object: ".join('/', $r);
             }
         }
         return "--NOT AN OBJECT--";

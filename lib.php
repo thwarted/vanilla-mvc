@@ -397,5 +397,16 @@ function d($msg, $desc = '') {
     $__RECMSG[] = "<dt>$caller</dt><dd style=\"margin-bottom: 10px;\">$msg</dd>";
 }
 
+function walk($array, $cb /* ... */ ) {
+    $startargs = func_get_args();
+    array_shift($startargs); # remove array
+    array_shift($startargs); # remove callback
+    foreach ($array as $v) {
+        $na = $startargs;
+        array_unshift($na, $v);
+        call_user_func_array($cb, $na);
+    }
+}
+
 set_exception_handler(array('lib', 'log_exception'));
 

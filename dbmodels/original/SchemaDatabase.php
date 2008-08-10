@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-require_once "vanilla/modellib.php";
-require_once "vanilla/SchemaTable.php";
-require_once "vanilla/SchemaColumn.php";
-require_once "vanilla/ModelCollection.php";
-require_once "vanilla/Model.php";
-
 class SchemaDatabase {
     public $dbhandle;
     public $name;
@@ -63,7 +57,7 @@ class SchemaDatabase {
     }
 
     private function ___find_tables_build_models($options) {
-        $ModelCommonCode = file_get_contents('vanilla/ModelCommonCode.php');
+        $ModelCommonCode = file_get_contents('vanilla/dbmodels/original/ModelCommonCode.php');
         # this could potentially save some space in the cached/serialized SchemaDatabase object
         #$ModelCommonCode = preg_replace('/#[^\n]*\n/', '', $ModelCommonCode);
 

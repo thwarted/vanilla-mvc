@@ -14,17 +14,6 @@
  * limitations under the License.
  */
 
-function walk($array, $cb /* ... */ ) {
-    $startargs = func_get_args();
-    array_shift($startargs); # remove array
-    array_shift($startargs); # remove callback
-    foreach ($array as $v) {
-        $na = $startargs;
-        array_unshift($na, $v);
-        call_user_func_array($cb, $na);
-    }
-}
-
 class ModelBase {
     protected $_t;
     protected $_db;
