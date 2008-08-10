@@ -16,7 +16,7 @@
 
 # TODO add support for ignoring tables
 
-class Model2 {
+class Model {
     static public $TABLEPREFIX = '';
     static private $MODELINFO = array();
     static private $RETABLES = '';
@@ -105,9 +105,9 @@ class Model2 {
         }
         foreach ($this->_virtuals as $vn=>$v) {
             if (is_object($v)) {
-                if ( ($v instanceof Model2Collection) ) {
+                if ( ($v instanceof ModelCollection) ) {
                     $v = $v->dump();
-                } elseif ($v instanceof Model2) {
+                } elseif ($v instanceof Model) {
                     $v = $v->pp();
                 } else {
                     $v = "object(".get_class($v).")";
@@ -122,7 +122,7 @@ class Model2 {
             if (is_object($v)) {
                 if (! ($v instanceof ModelCollection) ) {
                     $v = "collection(".get_class($v).")";
-                } elseif ($v instanceof Model2) {
+                } elseif ($v instanceof Model) {
                     $v = $v->pp();
                 } else {
                     $v = "object(".get_class($v).")";
@@ -248,7 +248,7 @@ class Model2 {
                     );
                     error_log($q);
                     $v = self::_find($n, array(array($q, array('id'=>$this->id))));
-                    $x = new Model2Collection($n);
+                    $x = new ModelCollection($n);
                     $x->merge($v);
                     $this->_virtuals[$n] = $x;
                     return array(true, $x);
@@ -398,8 +398,8 @@ class Model2 {
     }
 
 #####################################################################
-    # public because Model2Collection needs to call us
-    # consider moving to a Model2Base class
+    # public because ModelCollection needs to call us
+    # consider moving to a ModelBase class
     public static function _modelinfo($model) {
         if (is_object($model)) $model = get_class($model);
         if (!isset(self::$MODELINFO[$model])) {

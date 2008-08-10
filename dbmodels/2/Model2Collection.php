@@ -16,7 +16,7 @@
 
 # requires walk from ModelCollection.php
 
-class Model2Collection implements Countable, ArrayAccess, Iterator {
+class ModelCollection implements Countable, ArrayAccess, Iterator {
     private $_ofclass = NULL;
     private $_ownerobj = NULL;
     private $_members = array();
@@ -81,7 +81,7 @@ class Model2Collection implements Countable, ArrayAccess, Iterator {
 
     public function dump($deep=0) {
         $r = array('collection-of'=>$this->_ofclass);
-        $ti = Model2::_modelinfo($this->_ofclass);
+        $ti = Model::_modelinfo($this->_ofclass);
         foreach ($this as $v) {
             $keys = array();
             foreach ($ti['primarykey'] as $pk) {
@@ -129,7 +129,7 @@ class Model2Collection implements Countable, ArrayAccess, Iterator {
     }
 
     public function offsetSet($offset, $value) {
-        if (is_object($value) && ($value instanceof $this->_ofclass) && ($value instanceof Model2)) {
+        if (is_object($value) && ($value instanceof $this->_ofclass) && ($value instanceof Model)) {
             if (empty($offset)) {
                 $offset = $value->pkidentifier();
                 #error_log("offset was empty for ".$this->_ofclass.", setting to $offset"); 
