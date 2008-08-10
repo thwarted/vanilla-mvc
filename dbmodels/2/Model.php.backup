@@ -16,7 +16,7 @@
 
 # TODO add support for ignoring tables
 
-class Model2 {
+class Model {
     static public $TABLEPREFIX = '';
     static private $MODELINFO = array();
     static private $RETABLES = '';
