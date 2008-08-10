@@ -1,6 +1,6 @@
 <?php
 
-class Model3Collection implements Countable, ArrayAccess, Iterator {
+class ModelCollection implements Countable, ArrayAccess, Iterator {
     private $members = array();
     public $ofclass = NULL;
     private $owner = NULL;
@@ -8,6 +8,22 @@ class Model3Collection implements Countable, ArrayAccess, Iterator {
     public function __construct($ofclass, $owner = NULL) {
         $this->ofclass = $ofclass;
         $this->owner = $owner;
+    }
+
+    public function dump($deep=false) { # $deep is unimplemented
+        $r = array('collection-of'=>$this->ofclass);
+        $complexkey = Model::_has_complex_primary_key($this->ofclass);
+        foreach ($this as $v) {
+            $x = $v->pp();
+            if ($complexkey) {
+                # no really good thing to do here
+                $r[] = $x;
+            } else {
+                $k = $v->_simple_primary_key();
+                $r[$v->$k] = $x;
+            }
+        }
+        return $r;
     }
 
     public function merge($array) {

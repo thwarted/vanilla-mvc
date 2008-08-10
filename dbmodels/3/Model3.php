@@ -106,7 +106,8 @@ class ModelDatabaseSetup {
         return self::$DBH;
     }
 
-    static public function init_loadcache($cache=NULL, $prefix='', $dbh=NULL) {
+    static public function init_loadcache($cache=NULL, $options=array(), $dbh=NULL) {
+        $prefix = isset($options['prefix']) ? $options['prefix'] : '';
         self::$TABLEPREFIX = $prefix;
         self::$DBH = $dbh;
         self::$MODELINFO = $cache;
@@ -114,10 +115,13 @@ class ModelDatabaseSetup {
         self::$RETABLES = sprintf('/^((\w+_)??(%s))_id$/', join('|', $allmodels));
     }
 
-    static public function init_examine($tables=array(), $prefix='', $dbh=NULL) {
+    static public function init_examine($tables=array(), $options=array(), $dbh=NULL) {
+        $prefix = isset($options['prefix']) ? $options['prefix'] : '';
         self::$TABLEPREFIX = $prefix;
         self::$DBH = $dbh;
 
+        # buh, get this out of here, the value of $tables should be 
+        # filtered by the caller
         $prefixre = sprintf('/^%s(.+)$/', $prefix);
         foreach ($tables as $tablename) {
             if (preg_match($prefixre, $tablename, $m)) {
@@ -146,7 +150,7 @@ class ModelDatabaseSetup {
     }
 
     static public function init_create_models() {
-        $ModelCommonCode = file_get_contents('vanilla/dbmodels/3/Model3CommonCode.php');
+        $ModelCommonCode = file_get_contents('vanilla/dbmodels/3/ModelCommonCode.php');
         $ModelCommonCode = preg_replace('/^\s+#.*$/m', '', $ModelCommonCode);
         $ModelCommonCode = preg_replace('/^\s*\n/', '', $ModelCommonCode);
         $models = array_keys(self::$MODELINFO);
@@ -160,7 +164,7 @@ class ModelDatabaseSetup {
     }
 
     static public function init_create_cachefile() {
-        $ModelCommonCode = file_get_contents('vanilla/dbmodels/3/Model3CommonCode.php');
+        $ModelCommonCode = file_get_contents('vanilla/dbmodels/3/ModelCommonCode.php');
         $ModelCommonCode = preg_replace('/^\s+#.*$/m', '', $ModelCommonCode);
         $ModelCommonCode = preg_replace('/^\s*\n/', '', $ModelCommonCode);
         $v = '<'."?php\n\n".'$_x = '.var_export(self::$MODELINFO, true).";\n";
@@ -639,8 +643,12 @@ class ModelDataManipulation extends ModelDataQuery {
         $virts = array_keys($ti['virtuals']);
         foreach ($virts as $f) {
             $v = $this->$f;
-            if (is_object($v) && $v instanceof Model) {
-                $v = $v->pp();
+            if (is_object($v)) {
+                if ($v instanceof Model) {
+                    $v = $v->pp();
+                } elseif ($v instanceof ModelCollection) {
+                    $v = $v->dump();
+                }
             } elseif (is_array($v)) {
                 $v = count($v).' element array()';
             }
@@ -873,7 +881,7 @@ class ModelDataManipulation extends ModelDataQuery {
 }
 
 
-class Model3 extends ModelDataManipulation { }
+class Model extends ModelDataManipulation { }
 
 
 
