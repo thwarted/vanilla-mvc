@@ -1,6 +1,6 @@
     # this file is included in all automatically generated Models at run-time
 
-    # defer these static functions to SchemaTable's definition of them
+    # defer these static functions to the base model's definition of them
     # to avoid parsing the source to figure this out in the definitions
     # on Model
     # see http://bugs.php.net/bug.php?id=12622
