@@ -30,6 +30,9 @@ class cond {
 
     public static function like() { $x = func_get_args(); return new cond('like', array_values_recursive($x)); }
     private function like_expr($l) { return array("like ?:$l", array($l=>$this->val[0])); }
+    
+    public static function notlike() { $x = func_get_args(); return new cond('notlike', array_values_recursive($x)); }
+    private function notlike_expr($l) { return array("not like ?:$l", array($l=>$this->val[0])); }
 
     public static function in() { $x = func_get_args(); return new cond('in', array_values_recursive($x)); }
     private function in_expr($l) { return array("in (?:$l:join)", array("$l:join"=>$this->val)); }
@@ -46,11 +49,20 @@ class cond {
     public static function between($x, $y) { return new cond('between', array('min'=>$x, 'max'=>$y)); }
     private function between_expr($l) { return array("between ?:min$l and ?:max$l", array("min$l"=>$this->val['min'], "max$l"=>$this->val['max'])); }
 
+    public static function notbetween($x, $y) { return new cond('notbetween', array('min'=>$x, 'max'=>$y)); }
+    private function notbetween_expr($l) { return array("not between ?:min$l and ?:max$l", array("min$l"=>$this->val['min'], "max$l"=>$this->val['max'])); }
+
     public static function lt($x) { return new cond('lt', array('x'=>$x)); }
     private function lt_expr($l) { return array("< ?:x$l", array("x$l"=>$this->val['x'])); }
+    
+    public static function ltequal($x) { return new cond('ltequal', array('x'=>$x)); }
+    private function ltequal_expr($l) { return array("<= ?:x$l", array("x$l"=>$this->val['x'])); }
 
     public static function gt($x) { return new cond('gt', array('x'=>$x)); }
     private function gt_expr($l) { return array("> ?:x$l", array("x$l"=>$this->val['x'])); }
+    
+    public static function gtequal($x) { return new cond('gtequal', array('x'=>$x)); }
+    private function gtequal_expr($l) { return array(">= ?:x$l", array("x$l"=>$this->val['x'])); }
 
     public static function nullsafeequal($x) { return new cond('nullsafeequal', array('x'=>$x)); }
     private function nullsafeequal_expr($l) { return array("<=> ?:x$l", array("x$l"=>$this->val['x'])); }
