@@ -25,11 +25,12 @@ class SchemaDatabase {
 
     public $tables = array();
 
-    public function __construct($name, $dbhandle, $options=array()) {
+    #public function __construct($name, $dbhandle, $options=array()) 
+    public function __construct($tablist, $options, $dbhandle) {
         $this->dbhandle = $dbhandle;
 
-        $this->nameQ = $this->dbhandle->quote_label($name);
-        $this->___find_tables_build_models($options);
+        $this->nameQ = $dbhandle->quote_label($dbhandle->dbname());
+        $this->___find_tables_build_models($tablist, $options);
 
         $this->___find_references();
     }
@@ -56,7 +57,7 @@ class SchemaDatabase {
         }
     }
 
-    private function ___find_tables_build_models($options) {
+    private function ___find_tables_build_models($tables, $options) {
         $ModelCommonCode = file_get_contents('vanilla/dbmodels/original/ModelCommonCode.php');
         # this could potentially save some space in the cached/serialized SchemaDatabase object
         #$ModelCommonCode = preg_replace('/#[^\n]*\n/', '', $ModelCommonCode);
@@ -96,18 +97,6 @@ class SchemaDatabase {
             eval($code);
             $this->setupcode[$cn] = $code;
         }
-
-        /*
-        #$tx = 'product,product_image,image,imgdata,envshot,product_envshot,role,user';
-        #$tx .= ',user,role,personal_info,trade_reference';
-        #$tx = 'user,email_outgoing';
-        foreach (preg_split('/,/', $tx) as $tn) {
-            $this->tables[$tn] = new SchemaTable($this, $tn);
-            if (!class_exists($tn)) {
-                eval("class $tn extends Model { }");
-            }
-        }
-        */
 
         $this->REtables = sprintf('/^((\w+_)??(%s))_id$/', join('|', array_keys($this->tables)));
 
