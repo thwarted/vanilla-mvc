@@ -45,6 +45,8 @@
  *
  */
 
+require_once "vanilla/dbcond.php";
+
 class DBIException extends Exception {
     private $stmt;
     public function setStatement($s) {
