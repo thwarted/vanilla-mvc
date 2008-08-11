@@ -564,7 +564,7 @@ class form_fileupload extends formfield {
 
             case UPLOAD_ERR_INI_SIZE:
             case UPLOAD_ERR_FORM_SIZE:
-                return "file to large";
+                return "file too large";
 
             case UPLOAD_ERR_PARTIAL:
                 return "incomplete upload";
