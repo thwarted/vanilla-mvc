@@ -141,7 +141,7 @@ error_reporting(E_ALL);
 # in your output inside of the 'internal_hosts_arr' array. the outputted
 # 'internal_hosts_regexp' is a pcra regular expression.
 $_SERVER['internal_hosts_arr'] = array();
-if (count($_SERVER['internal_hosts_arr') > 0) {
+if (count($_SERVER['internal_hosts_arr']) > 0) {
 	$_SERVER['internal_hosts_regexp'] = '/^(' . implode("|", str_replace(".", "\.", $_SERVER['internal_hosts_arr'])) . ')$/';
 } else {
 	$_SERVER['internal_hosts_regexp'] = '';
