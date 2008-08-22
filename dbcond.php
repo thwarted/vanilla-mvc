@@ -18,7 +18,7 @@ class cond {
     public $op;
     public $val;
 
-    public function __construct($op, $val) {
+    public function __construct($op, $val=NULL) {
         $this->op = $op;
         $this->val = $val;
     }
@@ -65,5 +65,11 @@ class cond {
 
     public static function nullsafeequal($x) { return new cond('nullsafeequal', array('x'=>$x)); }
     private function nullsafeequal_expr($l) { return array("<=> ?:x$l", array("x$l"=>$this->val['x'])); }
+    
+    public static function isnull() { return new cond('isnull'); }
+    private function isnull_expr($l) { return array("is null", array()); }
+    
+    public static function notnull() { return new cond('notnull'); }
+    private function notnull_expr($l) { return array("is not null", array()); }
 }
 
