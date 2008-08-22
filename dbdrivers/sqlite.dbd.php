@@ -15,7 +15,10 @@
  */
 
 class DBDsqlite extends DBD {
+	static public $database_name;
+	
     public function connect($a) {
+    	self::$database_name = $a['dbname'];    	
         if (!empty($a['persistent'])) {
             $db1 = sqlite_popen($a['dbname']);
         } else {
@@ -59,6 +62,9 @@ class DBDsqlite extends DBD {
             return sqlite_fetch_object($ch, $cn);
         }
         return sqlite_fetch_object($ch);
+    }
+    public function dbname() {
+    	return self::$database_name;
     }
 }
 

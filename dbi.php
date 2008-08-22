@@ -353,6 +353,10 @@ class DBIdbh {
         # should take arguments of $catalog, $schema, $table, $column
         return $this->dbd->column_info($table, $column);
     }
+    
+    public function dbname() {
+    	return $this->dbd->dbname();
+    }
 }
 
 class DBI {
