@@ -24,7 +24,7 @@ class DBDmysql extends DBD {
         if ($db1 && !empty($a['database'])) {        	
             mysql_select_db($a['database'], $db1);
         }
-        return array($dbh1, ((!empty($a['database'])) ? $a['database']: NULL));
+        return array($db1, ((!empty($a['database'])) ? $a['database']: NULL));
     }
     public function quote_includes_enclosing() { return false; }
     public function quote($x) {
