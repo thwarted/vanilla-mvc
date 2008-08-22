@@ -15,19 +15,16 @@
  */
 
 class DBDmysql extends DBD {
-	public static $database_name;
-	
     public function connect($a) {
         if (!empty($a['persistent'])) {
             $db1 = mysql_pconnect($a['host'], $a['user'], $a['password']);
         } else {
             $db1 = mysql_connect($a['host'], $a['user'], $a['password']);
         }
-        if ($db1 && !empty($a['database'])) {
-        	self::$database_name = $a['database'];        	
+        if ($db1 && !empty($a['database'])) {        	
             mysql_select_db($a['database'], $db1);
         }
-        return $db1;
+        return array($dbh1, ((!empty($a['database'])) ? $a['database']: NULL));
     }
     public function quote_includes_enclosing() { return false; }
     public function quote($x) {
@@ -67,9 +64,6 @@ class DBDmysql extends DBD {
             return mysql_fetch_object($ch, $cn);
         }
         return mysql_fetch_object($ch);
-    }
-    public function dbname() {
-    	return self::$database_name;
     }
     public function tables() {
         $q = mysql_query("show tables", $this->dbres);

@@ -287,10 +287,12 @@ class DBIstatement {
 
 class DBIdbh {
     public $dbd;
+    public $dbname;
     private $outter_quotes;
 
     public function __construct($dbd) {
-        $this->dbd = $dbd;
+        $this->dbd = $dbd[0];
+        $this->dbname = $dbd[1];
         $this->outter_quotes = !$this->dbd->quote_includes_enclosing();
     }
 

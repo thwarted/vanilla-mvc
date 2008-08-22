@@ -15,16 +15,13 @@
  */
 
 class DBDsqlite extends DBD {
-	static public $database_name;
-	
-    public function connect($a) {
-    	self::$database_name = $a['dbname'];    	
+    public function connect($a) {    	
         if (!empty($a['persistent'])) {
             $db1 = sqlite_popen($a['dbname']);
         } else {
             $db1 = sqlite_open($a['dbname']);
         }
-        return $db1;
+        return array($db1, $a['dbname']);
     }
     public function quote_includes_enclosing() { return false; }
     public function quote($x) {
@@ -62,9 +59,6 @@ class DBDsqlite extends DBD {
             return sqlite_fetch_object($ch, $cn);
         }
         return sqlite_fetch_object($ch);
-    }
-    public function dbname() {
-    	return self::$database_name;
     }
 }
 
