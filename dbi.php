@@ -287,12 +287,10 @@ class DBIstatement {
 
 class DBIdbh {
     public $dbd;
-    public $dbname;
     private $outter_quotes;
 
     public function __construct($dbd) {
-        $this->dbd = $dbd[0];
-        $this->dbname = $dbd[1];
+        $this->dbd = $dbd;
         $this->outter_quotes = !$this->dbd->quote_includes_enclosing();
     }
 
@@ -357,7 +355,7 @@ class DBIdbh {
     }
     
     public function dbname() {
-    	return $this->dbd->dbname();
+        return $this->dbd->dbname();
     }
 }
 
@@ -389,10 +387,15 @@ class DBI {
                 throw new DBIException("unable to parse dsn $type");
             }
         }
-        $dbdname = self::load_dbdriver($type);
-        $dbres = call_user_func(array($dbdname, 'connect'), $a);
+        $dbdriver = self::load_dbdriver($type);
+        # attempt to connect first
+        $dbres = call_user_func(array($dbdriver, 'connect'), $a);
+        # if the connection succeeds, only then create the dbdriver object
+        # this way, the connection logic is only in the static connect
+        # method and the rest of the code only deals with the database handle
+        # doing it this way was kind of arbitrary
         if ($dbres) {
-            $dbh = new DBIdbh(new $dbdname($dbres));
+            $dbh = new DBIdbh(new $dbdriver($dbres, $a));
             return $dbh;
         }
         return NULL;
@@ -402,31 +405,36 @@ class DBI {
         if (!$type) {
             throw new DBIException("empty database driver specified");
         }
-        $dbdname = "DBD$type";
-        if (!class_exists($dbdname)) {
+        $dbdriver = "DBD$type";
+        if (!class_exists($dbdriver)) {
             $filename = "vanilla/dbdrivers/$type.dbd.php";
             if (file_exists($filename)) {
                 require_once($filename);
-                if (class_exists($dbdname)) {
-                    return $dbdname;
+                if (class_exists($dbdriver)) {
+                    return $dbdriver;
                 }
             }
         }
-        throw new DBIException("unknown database abstraction $type ($dbdname)");
+        throw new DBIException("unknown database abstraction $type ($dbdriver)");
     }
 
 }
 
-class DBD {
+abstract class DBD {
     protected $dbres;
+    protected $connect_options;
 
-    public function __construct($dbres) {
+    public function __construct($dbres, $co) {
         $this->dbres = $dbres;
+        $this->connect_options = $co;
     }
 
     public function escape($x) {
         die("you shouldn't use escape, use quote instead");
         return $this->quote($x);
     }
+
+    abstract public function dbname();
+
 }
 

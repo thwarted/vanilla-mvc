@@ -15,13 +15,16 @@
  */
 
 class DBDsqlite extends DBD {
-    public function connect($a) {    	
+    public function connect($a) {
         if (!empty($a['persistent'])) {
             $db1 = sqlite_popen($a['dbname']);
         } else {
             $db1 = sqlite_open($a['dbname']);
         }
-        return array($db1, $a['dbname']);
+        return $db1;
+    }
+    public function dbname() {
+        return $this->connect_options['dbname'];
     }
     public function quote_includes_enclosing() { return false; }
     public function quote($x) {

@@ -21,10 +21,13 @@ class DBDmysql extends DBD {
         } else {
             $db1 = mysql_connect($a['host'], $a['user'], $a['password']);
         }
-        if ($db1 && !empty($a['database'])) {        	
+        if ($db1 && !empty($a['database'])) {
             mysql_select_db($a['database'], $db1);
         }
-        return array($db1, ((!empty($a['database'])) ? $a['database']: NULL));
+        return $db1;
+    }
+    public function dbname() {
+        return $this->connect_options['database'];
     }
     public function quote_includes_enclosing() { return false; }
     public function quote($x) {

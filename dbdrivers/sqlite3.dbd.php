@@ -23,6 +23,9 @@ class DBDsqlite3 extends DBDPDO {
         $db1->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         return $db1;
     }
+    public function dbname() {
+        return $this->connect_options['dbname'];
+    }
     public function tables() {
         $c = $this->dbres->prepare("select name from sqlite_master where type = 'table'");
         $c->execute();
