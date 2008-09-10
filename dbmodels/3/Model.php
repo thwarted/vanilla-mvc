@@ -389,7 +389,7 @@ class ModelDataQuery extends ModelDatabaseSetup {
 
     private static function _condition_integer($tableinfo, $cond) {
         # simple integer key
-        $a = array('id'=>$cond);
+        $a = array('key'=>$cond);
         # FIXME assumes a single column is the primary surrogate key
         $tableQ = $tableinfo['tableQ'];
         $pk = self::_simple_primary_key($tableinfo['model']);
