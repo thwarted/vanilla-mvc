@@ -93,7 +93,14 @@ class ModelCollection implements Countable, ArrayAccess, Iterator {
 
     public function offsetSet($offset, $value) {
         if (is_object($value) && ($value instanceof $this->ofclass) && ($value instanceof Model)) {
-            $this->members[$offset] = $value;
+            # consider explictly setting the offset to the primary key of the object being set
+            # original implementation does that
+            # would make the collection into a set, since the same row could not be added multiple times
+            if ($offset) {
+                $this->members[$offset] = $value;
+            } else {
+                $this->members[] = $value;
+            }
         }
     }
 
