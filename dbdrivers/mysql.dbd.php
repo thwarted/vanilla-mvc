@@ -81,6 +81,7 @@ class DBDmysql extends DBD {
         $q = mysql_query(sprintf('desc `%s`', $table));
         $r = array();
         while ($x = mysql_fetch_assoc($q)) {
+            $x['pk'] = $x['Key'] === 'PRI' ? 1 : 0;
             $r[] = $x;
         }
         mysql_free_result($q);
