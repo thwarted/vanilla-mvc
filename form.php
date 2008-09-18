@@ -316,7 +316,9 @@ class form_input_text extends formfield {
 
 class form_input_hidden extends formfield {
     public function html() {
-        $r = sprintf('<input type="hidden" name="%s" value="%s" />', $this->mkname(), htmlspecialchars($this->value()));
+        $r = sprintf('<input type="hidden" name="%s" value="%s"', $this->mkname(), htmlspecialchars($this->value()));
+        $r .= $this->render_attributes();
+        $r .= ' />';
         return $r;
     }
 }
