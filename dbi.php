@@ -67,6 +67,7 @@ class DBIstatement {
     private $cursor_handle;
     private $executed_stmt;
     private $execution_time;
+    private $bind_columns; # THIS FEATURE IS ALPHA (bind_columns)
 
     public function __construct(&$dbh, $statement) {
         $statement = trim($statement);
@@ -283,6 +284,37 @@ class DBIstatement {
     public function execution_time() {
         return $this->execution_time;
     }
+
+    # THIS FEATURE IS ALPHA (bind_columns)
+    public function bind_columns(&$a0=NULL, &$a1=NULL, &$a2=NULL, &$a3=NULL, &$a4=NULL, &$a5=NULL, &$a6=NULL, &$a7=NULL, &$a8=NULL, &$a9=NULL) {
+        $a = func_get_args();
+        $ca = count($a);
+        if ($ca == 0 || !is_array($this->bind_columns)) {
+            $this->bind_columns = array();
+        }
+        for ($c=0;$c<$ca;$c++) {
+            $var = "a$c";
+            $this->bind_columns[] = &$$var;
+        }
+    }
+
+    # THIS FEATURE IS ALPHA (bind_columns)
+    public function fetch() {
+        if (is_array($this->bind_columns) && count($this->bind_columns)) {
+            $x = $this->fetchrow_array();
+            if ($x) {
+                foreach ($x as $i=>$v) {
+                    if (array_key_exists($i, $this->bind_columns)) {
+                        $this->bind_columns[$i] = $v;
+                    }
+                }
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
 }
 
 class DBIdbh {
