@@ -276,8 +276,12 @@ class lib {
         if ($dh = opendir($dir)) {
             $modfiles = array();
             while (($mfile = readdir($dh)) !== false) {
-                if (filetype("$dir/$mfile") === 'file' && preg_match('/\.php$/', $mfile)) {
+                $curr = "$dir/$mfile";
+                $filetype = filetype($curr);
+                if ($filetype === 'file' && preg_match('/\.php$/', $mfile)) {
                     array_push($modfiles, $mfile);
+                } else if ($filetype === 'dir') {
+                    lib::load_model_definitions($curr);
                 }
             }
             closedir($dh);
