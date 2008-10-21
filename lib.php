@@ -276,13 +276,14 @@ class lib {
         if ($dh = opendir($dir)) {
             $modfiles = array();
             while (($mfile = readdir($dh)) !== false) {
-                $curr = "$dir/$mfile";
-                if ($mfile === '.' || $mfile === '..') continue;
-                $filetype = filetype($curr);
-                if ($filetype === 'file' && preg_match('/\.php$/', $mfile)) {
-                    array_push($modfiles, $mfile);
-                } else if ($filetype === 'dir') {
-                    lib::load_model_definitions($curr);
+                if (!in_array($mfile, array('.svn', '.', '..'))) {
+                    $curr = "$dir/$mfile";
+                    $filetype = filetype($curr);
+                    if ($filetype === 'file' && preg_match('/\.php$/', $mfile)) {
+                        array_push($modfiles, $mfile);
+                    } else if ($filetype === 'dir') {
+                        lib::load_model_definitions($curr);
+                    }
                 }
             }
             closedir($dh);
