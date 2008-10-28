@@ -861,7 +861,7 @@ class ModelDataManipulation extends ModelDataQuery {
         $x = 0;
         foreach ($ti['columns'] as $col=>$cinfo) {
             if ($cinfo['Key'] === 'PRI') continue;
-            if ($this->changed($col)) continue;
+            if (!$this->changed($col)) continue;
             $newval = @ $this->_Manipulation_real_columns[$col];
             $x++;
             $k = "c$col$x";
