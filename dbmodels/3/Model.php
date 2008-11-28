@@ -822,7 +822,7 @@ class ModelDataManipulation extends ModelDataQuery {
         list($c, $v) = $x;
         $q .= join(' and ', $c);
         $sth = self::modeldbh($this)->prepare($q);
-        print "$q\n";
+        #print "$q\n";
         $sth->execute($v);
         list($c) = $sth->fetchrow_array();
         if ($c > 1) throw new Exception("fatal error: more than row matches what we thought was the primary key");
@@ -842,8 +842,8 @@ class ModelDataManipulation extends ModelDataQuery {
             $setf[] = "?:$k";
         }
         $q = "insert into ".$ti['tableQ'].' ('.join(', ', $setc).') values ('.join(', ', $setf).')';
-        print "$q\n";
-        print_r($setv);
+        #print "$q\n";
+        #print_r($setv);
 
         $sth = self::modeldbh($this)->prepare($q);
         $sth->execute($setv);
@@ -873,8 +873,8 @@ class ModelDataManipulation extends ModelDataQuery {
         list($c, $v) = $this->_build_pkcondition($ti);
         $q .= " where ".join(" and ", $c);
         $setv = array_merge($setv, $v);
-        print "$q\n";
-        print_r($setv);
+        #print "$q\n";
+        #print_r($setv);
         $sth = self::modeldbh($this)->prepare($q);
         $sth->execute($setv);
     }
