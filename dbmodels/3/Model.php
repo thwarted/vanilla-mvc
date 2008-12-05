@@ -683,7 +683,7 @@ class ModelDataManipulation extends ModelDataQuery {
     public function __get($field) {
         $m = "__get_$field";
         if (is_callable(array($this, $m))) {
-            return call_user_func(array($this, $m), $n);
+            return call_user_func(array($this, $m), $field);
         }
 
         # literal fields are more likely than virtual or extra 
