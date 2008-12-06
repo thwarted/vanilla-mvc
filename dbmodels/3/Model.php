@@ -835,6 +835,7 @@ class ModelDataManipulation extends ModelDataQuery {
         $setf = array();
         $x = 0;
         foreach ($ti['columns'] as $col=>$cinfo) {
+            if (!$this->changed($col)) continue;
             $x++;
             $k = "i$col$x";
             $setc[] = $ti['columns'][$col]['nameQ'];
