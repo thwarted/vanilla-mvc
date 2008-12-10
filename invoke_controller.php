@@ -61,7 +61,7 @@ function invoke_form_handler() {
             # - is illegal in function names in PHP, so safe to use as a separator here
             list($model, $formid) = explode('-', $k);
             if ($formid) {
-                $modelfile = sprintf('models/%s.php', $model);
+                $modelfile = $_SERVER['modelfiles'][$model];
                 $handlefunc = sprintf('handle_form_%s', $formid);
                 if (file_exists($modelfile)) {
                     require_once $modelfile;

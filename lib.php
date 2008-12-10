@@ -270,28 +270,17 @@ class lib {
     }
 
     static public function load_model_definitions($dir=NULL) {
-        if (!$dir) $dir = "./models";
+        if (!$dir) $dir = './models';
+        if (!isset($_SERVER['modelfiles'])) $_SERVER['modelfiles'] = array();
 
-        # read in all the model files
-        if ($dh = opendir($dir)) {
-            $modfiles = array();
-            while (($mfile = readdir($dh)) !== false) {
-                if (!in_array($mfile, array('.svn', '.', '..'))) {
-                    $curr = "$dir/$mfile";
-                    $filetype = filetype($curr);
-                    if ($filetype === 'file' && preg_match('/\.php$/', $mfile)) {
-                        array_push($modfiles, $mfile);
-                    } else if ($filetype === 'dir') {
-                        lib::load_model_definitions($curr);
-                    }
-                }
-            }
-            closedir($dh);
-            sort($modfiles);
-
-            foreach ($modfiles as $mfile) {
-                #error_log($mfile);
-                require_once("$dir/$mfile");
+        $dh = glob($dir . '/*');
+        foreach ($dh as $mfile) {
+            $filetype = filetype($mfile);
+            if ($filetype === 'file' && preg_match('/\.php$/', $mfile)) {
+                $_SERVER['modelfiles'][str_replace('.php', '', basename($mfile))] = $mfile;
+                require_once($mfile);
+            } else if ($filetype === 'dir') {
+                lib::load_model_definitions($mfile);
             }
         }
     }
