@@ -286,6 +286,29 @@ class lib {
     }
 }
 
+function urlquery($url, $args) {
+    if (count($args) > 0) {
+        if (strpos($url, '?') === false) {
+            $url .= '?';
+        } else {
+            $url_query = parse_url($url, PHP_URL_QUERY);
+            if (!empty($url_query)) {
+                $url = str_replace($url_query, '', $url);
+
+                $existing_args = explode('&', $url_query);
+                foreach ($existing_args as $ea_data) {
+                    $split_data = explode('=', $ea_data);
+                    $args[$split_data[0]] = $split_data[1];
+                }
+            }
+        }
+
+        $url .= http_build_query($args);
+    }
+
+    return $url;
+}
+
 function url() {
     $o = array(rtrim($_SERVER['uribase'], '/'));
     $c = array_values_recursive(func_get_args());
