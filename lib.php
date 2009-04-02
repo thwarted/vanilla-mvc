@@ -32,7 +32,7 @@ class lib {
         $_SERVER['urirequest'] = $_SERVER['uribase'].$request;
         $request = trim($request, '/');
         if ($request) {
-            $request = explode('/', urldecode($request));
+            $request = explode('/', $request);
         } else {
             if (!isset($_SERVER['default_controller'])) {
                 throw new Exception("default controller not specified");
