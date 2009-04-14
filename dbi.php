@@ -161,8 +161,8 @@ class DBIstatement {
             }
             /* slight chance that the ?:\w+ string could appear in a quoted string */
             /* if there is a binding they didn't specify, let the SQL parser detect it */
-            foreach ($search1 as $search1_k => $search1_v) {
-                $stmt = preg_replace('/\?' . $search1_v . '\b/', $replace1[$search1_k], $stmt);
+            foreach ($search1 as $k => $v) {
+                $stmt = preg_replace('/\?' . $v . '\b/', $replace1[$k], $stmt);
             }
         }
         if (!$stmt) {
