@@ -323,6 +323,27 @@ class form_input_hidden extends formfield {
     }
 }
 
+class form_input_hidden_json extends formfield {
+    private $use_raw_data;
+
+    public function use_raw_data($bool=true) {
+        $this->use_raw_data = !!$bool;
+    }
+
+    public function html() {
+        if (!$this->use_raw_data) {
+            $json = $this->value();
+        } else {
+            $json = json_decode($this->value(), true);
+        }
+
+        $r = sprintf('<input type="hidden" name="%s" value="%s" ', $this->mkname(), htmlspecialchars(json_encode($json)));
+        $r .= $this->render_attributes();
+        $r .= ' />';
+        return $r;
+    }
+}
+
 class form_input_password extends formfield {
     public function html() {
         # password fields should never be populated
@@ -766,7 +787,11 @@ class form implements Countable, ArrayAccess, Iterator {
     public function end() {
         $r = '';
         foreach ($this->_fields as $fname=>$i) {
-            if ($i instanceof form_input_hidden) {
+            if ($i instanceof form_input_hidden || $i instanceof form_input_hidden_json) {
+                if ($this->submitted() && $i instanceof form_input_hidden_json) {
+                    $i->use_raw_data();
+                }
+
                 $r .= $i->html();
             }
         }
