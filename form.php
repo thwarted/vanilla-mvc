@@ -557,7 +557,9 @@ class form_fileupload extends formfield {
             $r = sprintf('<input type="hidden" name="MAX_FILE_SIZE" value="%d" />', $this->_max_file_size);
         }
         $id = $this->id();
-        $r .= "<input type=\"file\" name=\"".$this->mkname()."\" id=\"$id\" />";
+        $r .= "<input type=\"file\" name=\"".$this->mkname()."\" ";
+        $r .= $this->render_attributes();
+        $r .= " />";
         return $r;
     }
 
