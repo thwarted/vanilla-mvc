@@ -321,11 +321,11 @@ class DBIstatement {
 
 class DBIdbh {
     public $dbd;
-    private $outter_quotes;
+    private $outer_quotes;
 
     public function __construct($dbd) {
         $this->dbd = $dbd;
-        $this->outter_quotes = !$this->dbd->quote_includes_enclosing();
+        $this->outer_quotes = !$this->dbd->quote_includes_enclosing();
     }
 
     public function quote_label($f) {
@@ -346,7 +346,7 @@ class DBIdbh {
         if (is_string($value) && is_numeric($value) && strval(intval($value)) === $value) {
             return intval($value);
         }
-        if ($this->outter_quotes) {
+        if ($this->outer_quotes) {
             return "'".$this->dbd->quote($value)."'";
         }
         return $this->dbd->quote($value);
