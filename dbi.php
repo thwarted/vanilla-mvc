@@ -113,10 +113,9 @@ class DBIstatement {
     }
 
     public function execute() {
-
         $numargs = func_num_args();
         if ($numargs) {
-            $this->bindings = func_get_args();
+            $this->bindings = $numargs;
         }
         $stmt = '';
         $success = true;
