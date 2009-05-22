@@ -58,16 +58,16 @@ class DBIException extends Exception {
 }
 
 class DBIstatement {
-    private $dbh;
-    private $sql;
-    private $stmttype;
-    private $sections;
-    private $bindings;
-    private $bindtypes;
-    private $cursor_handle;
-    private $executed_stmt;
-    private $execution_time;
-    private $bind_columns; # THIS FEATURE IS ALPHA (bind_columns)
+    protected $dbh;
+    protected $sql;
+    protected $stmttype;
+    protected $sections;
+    protected $bindings;
+    protected $bindtypes;
+    protected $cursor_handle;
+    protected $executed_stmt;
+    protected $execution_time;
+    protected $bind_columns; # THIS FEATURE IS ALPHA (bind_columns)
 
     public function __construct(&$dbh, $statement) {
         $statement = trim($statement);
