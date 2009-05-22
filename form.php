@@ -641,6 +641,7 @@ class form implements Countable, ArrayAccess, Iterator {
     private $_data;
     private $_submit_method;
     private $_submit_action;
+    private $_submit_target;
     private $_fields = array();
     private $_message;
     private $_error_count;
@@ -729,6 +730,14 @@ class form implements Countable, ArrayAccess, Iterator {
         }
         return $r;
     }
+
+    public function target($a=NULL) {
+        $r = $this->_submit_target;
+        if (isset($a)) {
+            $this->_submit_target = $a;
+        }
+        return $r;
+    }
     
     public function has_errors() {
         return ($this->_error_count != 0);
@@ -781,6 +790,9 @@ class form implements Countable, ArrayAccess, Iterator {
         }
         if ($this->_submit_action) {
             $r .= ' action="'.$this->_submit_action.'"';
+        }
+        if ($this->_submit_target) {
+            $r .= ' target="'.$this->_submit_target.'"';
         }
         $r .= '>';
         return $r;
