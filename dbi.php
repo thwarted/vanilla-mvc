@@ -115,8 +115,8 @@ class DBIstatement {
     public function execute() {
         $numargs = func_num_args();
         if ($numargs) {
-            $this->bindings = $numargs;
-        }
+            $this->bindings = func_get_args();
+        } # bindings is initialized to an emtpy array in the constructor
         $stmt = '';
         $success = true;
         if ($this->bindtypes === "positional") {
