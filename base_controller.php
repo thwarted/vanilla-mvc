@@ -150,7 +150,7 @@ abstract class base_controller {
         if ($this->autoRender) {
             $content_type = $this->content_type;
             if (preg_match('@^text/@', $content_type) && !preg_match('/charset=/i', $content_type)) {
-                $content_type .= '; charset="UTF-8"';
+                $content_type .= '; charset=UTF-8';
             }
             header("Content-type: ".$content_type);
             if (empty($_SERVER['buffer_rendering'])) {
