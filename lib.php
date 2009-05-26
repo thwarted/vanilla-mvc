@@ -275,6 +275,7 @@ class lib {
 
         $dh = glob($dir . '/*');
         foreach ($dh as $mfile) {
+            if (preg_match('/^\./', $mfile)) continue;
             $filetype = filetype($mfile);
             if ($filetype === 'file' && preg_match('/\.php$/', $mfile)) {
                 $_SERVER['modelfiles'][str_replace('.php', '', basename($mfile))] = $mfile;
