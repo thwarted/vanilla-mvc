@@ -20,6 +20,16 @@ if [ -e ./configure.sh ]; then
     exit 1
 fi
 
+if [ -d ./vanilla-mvc -a -f ./vanilla-mvc/dispatch.php ]; then
+    cat 1>&2 <<EOF
+$0:
+    the vanilla code is in a subdirectory named
+    vanilla-mvc (the name of the project on google code)
+    Please rename vanilla-mvc to vanilla
+EOF
+exit 1
+fi
+
 if [ ! -d ./vanilla -o ! -f ./vanilla/dispatch.php ]; then
     echo "$0: the directory you run this script from must contain the vanilla directory" 1>&2
     exit 1
