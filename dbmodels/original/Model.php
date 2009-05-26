@@ -16,7 +16,7 @@
 
 $_generation = 0; # used to avoid loops when saving data to the database
 
-class Model extends ModelBase {
+abstract class AbstractModel extends ModelBase {
     protected $_generation;
     protected $__members = array();
     protected $__virtmembers = array();

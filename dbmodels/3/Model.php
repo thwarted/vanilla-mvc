@@ -91,7 +91,7 @@ define('MODELForeignRefFindByQuery', 2);
 define('MODELForeignRefFindByRelation', 3);
 define('MODELForeignRefFindByRelationSingle', 4);
 
-class ModelDatabaseSetup {
+abstract class ModelDatabaseSetup {
     static public $TABLEPREFIX = '';
     static private $MODELINFO = array();
     static private $RETABLES = '';
@@ -384,7 +384,7 @@ class ModelDatabaseSetup {
     }
 }
 
-class ModelDataQuery extends ModelDatabaseSetup {
+abstract class ModelDataQuery extends ModelDatabaseSetup {
     protected $_Query_bound_to_row = false;
 
     private static function _condition_integer($tableinfo, $cond) {
@@ -572,7 +572,7 @@ class ModelDataQuery extends ModelDatabaseSetup {
 
 }
 
-class ModelDataManipulation extends ModelDataQuery {
+abstract class ModelDataManipulation extends ModelDataQuery {
     private $_Manipulation_real_columns = array();
     private $_Manipulation_virt_columns = array();
     private $_Manipulation_extra_columns = array();
@@ -882,7 +882,5 @@ class ModelDataManipulation extends ModelDataQuery {
 }
 
 
-class Model extends ModelDataManipulation { }
-
-
+abstract class AbstractModel extends ModelDataManipulation { }
 

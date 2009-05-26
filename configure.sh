@@ -90,6 +90,24 @@ template_conf.php (optional)
 EOF
 fi
 
+if [ ! -e setup/model.setup.php ]; then
+cat > setup/model.setup.php <<"EOF"
+<?php
+
+# there are multiple implementations of the model functionality
+# dbmodels/3 is the most efficient and reliable one
+require_once "vanilla/dbmodels/3/setup.php";
+
+# all models should/will subclass an abstract base class named Model.
+# the dbmodels define an abstract class AbstractModel which can be subclassed
+# to provide custom functionality across all models.  If custom functionality 
+# is not necessary, we just define an empty abstract class named Model
+# that inherits from the common AbstractModel class.
+
+abstract class Model extends AbstractModel { }
+EOF
+fi
+
 if [ ! -e setup/template_conf.php ]; then
 cat > setup/template_conf.php <<"EOF"
 <?php

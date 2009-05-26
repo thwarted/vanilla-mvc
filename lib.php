@@ -270,6 +270,9 @@ class lib {
     }
 
     static public function load_model_definitions($dir=NULL) {
+        if (!class_exists("Model")) {
+            throw new Exception("an abstract Model class must be defined before calling ::load_model_definitions");
+        }
         if (!$dir) $dir = './models';
         if (!isset($_SERVER['modelfiles'])) $_SERVER['modelfiles'] = array();
 

@@ -16,7 +16,7 @@
 
 # TODO add support for ignoring tables
 
-class Model {
+abstract class AbstractModel {
     static public $TABLEPREFIX = '';
     static private $MODELINFO = array();
     static private $RETABLES = '';
@@ -259,7 +259,7 @@ class Model {
         # otherwise, the other table may reference this one by having a column
         # that matches *_THISMODEL_id
         # returns an array
-        #if (preg_match(self::$RETABLES, $ci['Field'], $m)) {
+        #if (preg_match(self::$RETABLES, $ci['Field'], $m)) 
 
         return array(false, false);
 
