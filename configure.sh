@@ -202,4 +202,21 @@ $_SERVER['debugsql'] = false;
 EOF
 fi
 
+if [ ! -e setup/dispatch.setup.php ]; then
+cat > setup/dispatch.setup.php <<"EOF"
+<?php
 
+# override the following functions to "hook" into the base
+# functionality
+
+static class dispatch extends AbstractDispatch { 
+    # static function parse_request()
+    # static function invoke_form_handler() 
+    # static function find_controller_class()
+    # static function create_controller()
+    # static function invoke_controller()
+    # static function render()
+}
+
+EOF
+fi
