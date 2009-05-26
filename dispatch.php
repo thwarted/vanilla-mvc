@@ -39,6 +39,8 @@ $_SERVER['uribase'] .= '/';
 $_SERVER['mediabase'] = $_SERVER['uribase'].'media/';
 $_SERVER['filebase'] = preg_replace('@/vanilla/dispatch.php$@', '', $_SERVER['SCRIPT_FILENAME']);
 
+abstract class AbstractDispatch { }
+
 try {
     require_once "vanilla/setup.php";
 } catch (Exception $e) {

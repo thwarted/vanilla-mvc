@@ -209,7 +209,7 @@ cat > setup/dispatch.setup.php <<"EOF"
 # override the following functions to "hook" into the base
 # functionality
 
-static class dispatch extends AbstractDispatch { 
+class dispatch extends AbstractDispatch { 
     # static function parse_request()
     # static function invoke_form_handler() 
     # static function find_controller_class()
