@@ -210,13 +210,14 @@ cat > setup/dispatch.setup.php <<"EOF"
 # functionality
 
 class dispatch extends AbstractDispatch { 
-    # static function parse_request()
-    # static function invoke_form_handler() 
-    # static function find_controller_class()
-    # static function create_controller()
-    # static function invoke_controller()
-    # static function render()
+    # public function __construct()
+    # public function parse_request()
+    # public function invoke_form_handler() 
+    # public function find_controller_class()
+    # public function create_controller()
+    # public function render()
 }
 
 EOF
 fi
+

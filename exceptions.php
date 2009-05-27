@@ -50,10 +50,12 @@ class HTTPException extends Exception {
 
 
     public function body() {
+        global $dispatch;
         try {
-            $c = invoke_controller(array('errorpage'));
+            $dispatch->find_controller_class(array('errorpage'));
+            $dispatch->create_controller();
             ob_start();
-            $c->_render($this);
+            $dispatch->render();
             $output = ob_get_clean();
         } catch (Exception $e) {
             lib::log_exception($e);

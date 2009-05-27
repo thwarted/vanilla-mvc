@@ -15,6 +15,7 @@
  */
 
 $_SERVER['starttime'] = microtime(true);
+$_SERVER['routes'] = array();
 
 chdir(dirname(dirname($_SERVER['SCRIPT_FILENAME'])));
 
@@ -30,7 +31,7 @@ require_once "vanilla/exceptions.php";
 require_once "vanilla/form.php";
 require_once "vanilla/dbi.php";
 require_once "vanilla/base_controller.php";
-require_once "vanilla/invoke_controller.php";
+#require_once "vanilla/invoke_controller.php";
 
 require_once "setup/global_conf.php";
 
@@ -39,7 +40,8 @@ $_SERVER['uribase'] .= '/';
 $_SERVER['mediabase'] = $_SERVER['uribase'].'media/';
 $_SERVER['filebase'] = preg_replace('@/vanilla/dispatch.php$@', '', $_SERVER['SCRIPT_FILENAME']);
 
-abstract class AbstractDispatch { }
+
+require_once "vanilla/dispatchcore.php";
 
 try {
     require_once "vanilla/setup.php";
@@ -49,33 +51,15 @@ try {
     exit;
 }
 
+
 try {
 
-    $request = lib::parse_request();
-    $_SERVER['request'] = $request;
-
-    #if ($request) { d($request, 'request'); }
-
-    # FIXME this really needs to be better integrated
-    if (function_exists("pre_dispatch_hook")) {
-        pre_dispatch_hook($request);
-    }
-
-    # FIXME perhaps the the constructor on the controller
-    #       is what needs to invoke form handlers
-    invoke_form_handler();
-
-    $controller = invoke_controller($request);
-
-    #if (count($_POST)) { d($_POST, 'POST variables'); }
-    #if (count($_SESSION)) { d($_SESSION, 'SESSION variables'); }
-
-    $controller->_render();
-
-    # FIXME this really needs to be better integrated
-    if (function_exists('post_render_hook')) {
-        post_render_hook($request);
-    }
+    $dispatch = new Dispatch();
+    $dispatch->parse_request();
+    $dispatch->invoke_form_handler();
+    $dispatch->find_controller_class();
+    $dispatch->create_controller();
+    $dispatch->render();
 
 } catch(HTTPException $e) {
 

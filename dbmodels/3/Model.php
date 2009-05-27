@@ -759,7 +759,7 @@ abstract class ModelDataManipulation extends ModelDataQuery {
 
     private function _get_virtual($field) {
         if (array_key_exists($field, $this->_Manipulation_virt_columns)) {
-            error_log("returning previously set value for virtual $field");
+            #error_log("returning previously set value for virtual $field");
             return array(true, $this->_Manipulation_virt_columns[$field]);
         }
 
