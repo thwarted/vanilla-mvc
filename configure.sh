@@ -206,17 +206,17 @@ if [ ! -e setup/dispatch.setup.php ]; then
 cat > setup/dispatch.setup.php <<"EOF"
 <?php
 
-# override the following functions to "hook" into the base
-# functionality
+# define the following class and override its member functions to "hook" 
+# into the base functionality
 
-class dispatch extends AbstractDispatch { 
-    # public function __construct()
-    # public function parse_request()
-    # public function invoke_form_handler() 
-    # public function find_controller_class()
-    # public function create_controller()
-    # public function render()
-}
+# class Dispatch extends AbstractDispatch { 
+#     # public function __construct()
+#     # public function parse_request()
+#     # public function invoke_form_handler() 
+#     # public function find_controller_class()
+#     # public function create_controller()
+#     # public function render()
+# }
 
 EOF
 fi

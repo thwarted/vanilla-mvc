@@ -31,7 +31,6 @@ require_once "vanilla/exceptions.php";
 require_once "vanilla/form.php";
 require_once "vanilla/dbi.php";
 require_once "vanilla/base_controller.php";
-#require_once "vanilla/invoke_controller.php";
 
 require_once "setup/global_conf.php";
 
@@ -39,7 +38,6 @@ $_SERVER['uribase'] = preg_replace('@/vanilla/dispatch.php$@', '', $_SERVER['SCR
 $_SERVER['uribase'] .= '/';
 $_SERVER['mediabase'] = $_SERVER['uribase'].'media/';
 $_SERVER['filebase'] = preg_replace('@/vanilla/dispatch.php$@', '', $_SERVER['SCRIPT_FILENAME']);
-
 
 require_once "vanilla/dispatchcore.php";
 
@@ -51,6 +49,9 @@ try {
     exit;
 }
 
+# if the application's setup code doesn't define a class named Dispatch,
+# create one here which is just empty
+if (!class_exists('Dispatch')) { class Dispatch extends AbstractDispatch { } }
 
 try {
 
